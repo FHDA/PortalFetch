@@ -4,6 +4,34 @@
 
 This tool/prject fetch data from De Anza College / Foothill College portal and save to json file
 
+## Requirements
+
+Python 3.6
+
+## Install
+
+Suggestion: use your virtual environment as you with such as conda, virtualenv...etc
+
+do the following:
+
+```py
+pip install -r requirements.txt
+```
+
+## Usage(@todo)
+
+Activate your virtual environment if you have. Usually the command is `activate virtural_name`
+
+## Development (@todo)
+
+Suggestion: use your virtual environment as you with such as conda, virtualenv...etc
+
+do the following:
+
+```py
+pip install -r requirements.txt
+```
+
 ## Coding Style
 
 In general, we follow PEP8 Python coding style and Google pyguide
@@ -44,9 +72,11 @@ Reference:
     │       ├── helpers_tests.py  
     │       └── PortalFetch_tests.py  
     │  
-    ├── .gitignore  
+    ├── .gittattributes
+    ├── .gitignore
+    ├── requirements.txt  
     ├── LICENSE  
-    └── README.md  
+    └── README.md 
 
 ## Git Commit message
 
