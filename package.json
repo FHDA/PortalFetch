@@ -1,0 +1,33 @@
+{
+  "name": "fhda-portalfetch",
+  "version": "0.0.0",
+  "description": "This tool/project fetch data from De Anza College / Foothill College portal and save to json file",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FHDA/PortalFetch.git"
+  },
+  "author": "",
+  "license": "",
+  "bugs": {
+    "url": "https://github.com/FHDA/PortalFetch/issues"
+  },
+  "homepage": "https://github.com/FHDA/PortalFetch#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "husky": "^3.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "./scripts/pre-commit.sh",
+      "pre-push": "./scripts/pre-push.sh"
+    }
+  }
+}
