@@ -2,11 +2,13 @@
 
 ## Information
 
-This tool/prject fetch data from De Anza College / Foothill College portal and save to json file
+This tool/project fetch data from De Anza College / Foothill College portal and save to json file
 
 ## Requirements
 
-Python 3.6
+Python v3.6
+node v10.16.0
+npm v6.9.0 or above
 
 ## Install
 
@@ -14,7 +16,7 @@ Suggestion: use your virtual environment as you with such as conda, virtualenv..
 
 do the following:
 
-```py
+```script
 pip install -r requirements.txt
 ```
 
@@ -29,17 +31,31 @@ Suggestion: use your virtual environment as you with such as conda, virtualenv..
 do the following:
 
 ```py
+npm install
 pip install -r requirements.txt
 ```
+  
+We require all contributor write docsting for other contributors easy to follow.  
+One of software development process is TDD. We highly recommended you *write test before code*  
+However, test is not require but recommended.  
+The philosophy is **you must know exactly the detailed behavior of your code doing**.  
+
+We use [pytest](https://docs.pytest.org/) to test our code.  
+We use [pydocstring](http://pydocstyle.org/) to test our docstring.  
+We use [autopep8](https://github.com/hhatto/autopep8) to formating our code.  
+We use [pylint](https://pylint.org) as Python linter.  
 
 ## Coding Style
 
 In general, we follow PEP8 Python coding style and Google pyguide
-However, if PEP-8 and Google pyguide has conflict style, PEP8 take place.
+However, if PEP8 and Google pyguide has conflict style, PEP8 take place.
 
 Some special rule:
 
 1. max-line-length: 100
+
+Please also write docstring for contributor easy to follow.
+We follow Google docstring style(https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
 
 Reference:
 
@@ -67,14 +83,21 @@ Reference:
     ├── data/  
     │   └── input.json  
     │  
+    ├── scripts/  
+    │   ├── pre-commit.sh  
+    │   └── pre-push.sh  
     ├── tests/  
+    │   ├── 00_empty_test.py  
     │   └── PortalFetch  
     │       ├── helpers_tests.py  
     │       └── PortalFetch_tests.py  
     │  
     ├── .gittattributes
     ├── .gitignore
+    ├── package.json
+    ├── pylintrc
     ├── requirements.txt  
+    ├── setup.cfg  
     ├── LICENSE  
     └── README.md 
 
