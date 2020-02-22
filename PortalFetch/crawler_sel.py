@@ -23,11 +23,11 @@ def submitClick(driver):
     Parameters: webdriver
     Returns: None
     """
-    ipts = driver.find_elements_by_tag_name("input")
+    inputs = driver.find_elements_by_tag_name("input")
     submit = ""
-    for ipt in ipts:
-        if "submit" == ipt.get_attribute("type") and ipt.is_enabled() and ipt.is_displayed():
-            submit = ipt
+    for input in inputs:
+        if "submit" == input.get_attribute("type") and input.is_enabled() and input.is_displayed():
+            submit = input
             break
     '''if not submit:
         logging.info("No submit button found！")
@@ -143,12 +143,12 @@ def lookUpClasses(driver):
     for myappsclass in myappsclasses:
         txt = myappsclass.find_element_by_class_name("myapps-item-label").text
         txt = str.strip(txt)
-        if ("Look Up Classes".lower() == txt.lower()):
+        if ("look up classes" == txt.lower()):
             classes = myappsclass
             break
     if not classes:
         logging.info("No Look Up Classes feature found in the app list!")
-        return
+        sys.exit()
     return classes
 
 
@@ -262,15 +262,15 @@ def save_contents(filename, firstline, urlist):
         writer = csv.writer(f)
         writer.writerow([firstline])
 
-        for i in range(8,len(urlist)-1):
-            if len(urlist[i]) >=35:
+        for i in range(8, len(urlist)-1):
+            if len(urlist[i]) >= 35:
                 writer.writerow([urlist[i][1], urlist[i][3], urlist[i][5],urlist[i][7], urlist[i][9], urlist[i][11],
                             urlist[i][13], urlist[i][15], urlist[i][17],urlist[i][19], urlist[i][21], urlist[i][23],
                             urlist[i][25], urlist[i][27], urlist[i][29],urlist[i][31], urlist[i][33], urlist[i][35]]
                             )
             else:
                 writer.writerow(urlist[i])
-    logging.info("Finished!")
+    logging.info("Download Finished!")
 
 
 def main():
@@ -303,7 +303,8 @@ def main():
     # Select specified course
     quarter_downlist = Select(selectelement)  # a Select object
     value = parser.get('db','db_value')
-    quarter_downlist.select_by_value(value)  # Element positioning through select objects, value positioning (value of option)
+    quarter_downlist.select_by_value(value)
+    # Element positioning through select objects, value positioning (value of option)
     # search submit button
     submitClick(driver)
     # advance submit
@@ -316,10 +317,10 @@ def main():
     # Save searched courses
     html = saveResult(driver)  # see method
     courseList = []
-    get_contents(courseList, html)  #Extract course information from html
-    filename =parser.get('db','db_filename')
-    firstline = parser.get('db','db_firstline')
-    save_contents(filename, firstline, courseList) #Save course information as a csv file
+    get_contents(courseList, html)  # Extract course information from html
+    filename = parser.get('db', 'db_filename')
+    firstline = parser.get('db', 'db_firstline')
+    save_contents(filename, firstline, courseList)  # Save course information as a csv file
 
 
 if __name__ == "__main__":
