@@ -111,9 +111,6 @@ def findAppsMenu(driver):
     Returns: None
     """
     menus = driver.find_elements_by_class_name("list-group-item")
-    '''if not menus:
-        logging.info("No left menu found！")
-        return'''
     appMenu = []
     for menu in menus:
         txt = menu.text
@@ -136,9 +133,6 @@ def lookUpClasses(driver):
     Return type: list
     """
     myappsclasses = driver.find_elements_by_class_name("myapps-item")
-    '''if not myappsclasses:
-        logging.info("No app list found！")
-        return'''
     classes = []
     for myappsclass in myappsclasses:
         txt = myappsclass.find_element_by_class_name("myapps-item-label").text
@@ -148,7 +142,7 @@ def lookUpClasses(driver):
             break
     if not classes:
         logging.info("No Look Up Classes feature found in the app list!")
-        sys.exit()
+        sys.exit(-1)
     return classes
 
 
@@ -282,7 +276,6 @@ def main():
     """
     parser = ConfigParser()
     parser.read('dev.ini')
-    logging.basicConfig(filename='example.log', level=logging.INFO)
     driver = webdriver.Chrome()
     login_myportal(driver)
     # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
