@@ -179,11 +179,15 @@ def sectionSearch(driver):
                 "Section Search".lower() == ipt.get_attribute("value").lower():
             submit = ipt
             break
-    if not submit:
-        logging.info("No submit button found! ! ")
-        sys.exit(-1)  # Program exit
+    #if not submit:
+    #    logging.info("No submit button found! ! ")
+    #    sys.exit(-1)  # Program exit
     #Click the submit button
-    submit.click()
+    try:
+        submit.click()
+    except:
+        logging.error("No submit button found! ! ")
+        sys.exit(-1)
     # Wait for a while, wait for the page to open and make sure it loads
     time.sleep(3)
 
