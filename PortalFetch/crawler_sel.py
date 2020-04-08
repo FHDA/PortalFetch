@@ -18,7 +18,7 @@ import logging
 
 def submitClick(driver):
     """
-    Search and click sumbit button.
+    Search and click sumbit button in the search by term page.
 
     Parameters: webdriver
     Returns: None
@@ -38,7 +38,7 @@ def submitClick(driver):
 
 def advanceSearch(driver):
     """
-    Locate submit button and click.
+    Locate 'Advanced Search' button and click in the 'Look Up Classes' page
 
     Parameters: webdriver
     Returns: None
@@ -66,21 +66,27 @@ def login_myportal(driver):
     """
     # Open the browser (The true url is：https://myportal.fhda.edu/）
     driver.get("https://myportal.fhda.edu/")
-    # input username
-    username = int(input("Please enter your user name:  "))
-    driver.find_element_by_id("j_username").send_keys(username)
-    # input password
-    password = input("Please enter your password:   ")
-    driver.find_element_by_id("j_password").send_keys(password)
-    driver.find_element_by_id(
-        "btn-eventId-proceed").click()  # Wait for the response from the next page and make sure the page is loaded!
-    logging.info("Log in finished.")
+    try:
+        # input username
+        parser = ConfigParser()
+        parser.read('user.ini')
+        username = parser.get('db', 'db_username')
+        driver.find_element_by_id("j_username").send_keys(username)
+        # input password
+        password = parser.get('db', 'db_password')
+        driver.find_element_by_id("j_password").send_keys(password)
+        driver.find_element_by_id(
+            "btn-eventId-proceed").click()  # Wait for the response from the next page and make sure the page is loaded!
+        logging.info("Log in finished.")
+    except:
+        logging.error("Value Error: Log in failed.")
+        sys.exit(-1)
 
 
 # Open course search page
 def openSearchPage(driver):
     """
-    Click Appls->Look Up Classes-> open search page.
+    Click 'Apps'->'Look Up Classes' and open search page.
 
     Parameters: webdriver
     Returns: None
@@ -278,8 +284,7 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    parser = ConfigParser()
-    parser.read('dev.ini')
+
     driver = webdriver.Chrome()
     login_myportal(driver)
     # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
@@ -299,14 +304,15 @@ def main():
     selectelement = driver.find_element_by_tag_name("select")  # Because the page has only one drop-down box
     # Select specified course
     quarter_downlist = Select(selectelement)  # a Select object
+    parser = ConfigParser()
+    parser.read('dev.ini')
     value = parser.get('db','db_value')
     quarter_downlist.select_by_value(value)
     # Element positioning through select objects, value positioning (value of option)
-    # search submit button
+    # click 'Submit' button
     submitClick(driver)
-    # advance submit
+    # click 'Advance Search' button
     advanceSearch(driver)
-
     # Wait for a while to make sure the page loads
     waitUtilPageLoaded(driver)
     # Go to the advanced options page and start filling in various search terms
@@ -315,6 +321,7 @@ def main():
     html = saveResult(driver)  # see method
     courseList = []
     get_contents(courseList, html)  # Extract course information from html
+
     filename = parser.get('db', 'db_filename')
     firstline = parser.get('db', 'db_firstline')
     save_contents(filename, firstline, courseList)  # Save course information as a csv file
