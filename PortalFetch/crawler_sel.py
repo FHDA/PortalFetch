@@ -38,7 +38,7 @@ def submitClick(driver):
 
 def advanceSearch(driver):
     """
-    Locate 'Advanced Search' button and click in the 'Look Up Classes' page
+    Locate 'Advanced Search' button and click in the 'Look Up Classes' page.
 
     Parameters: webdriver
     Returns: None
@@ -284,7 +284,6 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-
     driver = webdriver.Chrome()
     login_myportal(driver)
     # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
