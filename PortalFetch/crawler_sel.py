@@ -48,9 +48,6 @@ def advanceSearch(driver):
                 "Advanced Search" == ipt.get_attribute("value"):
             submit = ipt
             break
-    if not submit:
-        logging.info("Advanced Search button not found！")
-        return
     submit.click()
 
 
@@ -119,9 +116,6 @@ def findAppsMenu(driver):
         if "apps".lower() == txt.lower():  # No left menu found
             appMenu = menu
             break
-    if not appMenu:
-        logging.info("Apps menu not found in left menu！")
-        return
     time.sleep(2)  # Wait for the next page to come over
     appMenu.click()  # Open the menu
 
