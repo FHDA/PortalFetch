@@ -29,9 +29,6 @@ def submitClick(driver):
         if "submit" == input.get_attribute("type") and input.is_enabled() and input.is_displayed():
             submit = input
             break
-    '''if not submit:
-        logging.info("No submit button found！")
-        return'''
     submit.click()
     time.sleep(2)  # Waiting for completion
 
@@ -83,7 +80,6 @@ def login_myportal(driver):
         sys.exit(-1)
 
 
-# Open course search page
 def openSearchPage(driver):
     """
     Click 'Apps'->'Look Up Classes' and open search page.
@@ -152,11 +148,11 @@ def lookUpClasses(driver):
     return classes
 
 
-# Go to the advanced options page and start filling in various search terms
 def fillAdvanceSearch(driver):
     """
     Fill advance search.
 
+    Go to the advanced options page and start filling in various search terms
     Parameters: webdriver
     Returns: None
     """
@@ -185,10 +181,6 @@ def sectionSearch(driver):
                 "Section Search".lower() == ipt.get_attribute("value").lower():
             submit = ipt
             break
-    #if not submit:
-    #    logging.info("No submit button found! ! ")
-    #    sys.exit(-1)  # Program exit
-    #Click the submit button
     try:
         submit.click()
     except:
@@ -198,10 +190,9 @@ def sectionSearch(driver):
     time.sleep(3)
 
 
-# Save the results of the course
 def saveResult(driver):
     """
-    Save result to a html.
+    Save the results of courses to a html.
 
     Parameters: webdriver
     Returns: html
@@ -225,9 +216,11 @@ def waitUtilPageLoaded(driver):
     Parameters: webdriver
     Returns: None
     """
-    while True:
+    count = 0
+    while True and count < 30:
         try:
             driver.find_element_by_class_name("banner_copyright")
+            count += 1
             break
         except:
             logging.info("retry after 1 second...")
@@ -235,12 +228,13 @@ def waitUtilPageLoaded(driver):
             pass
 
 
-# input: text is html of the courses, ulist is an empty list []
-# output : ulist will include all the courses list in text
+
 def get_contents(ulist, text):
     """
     Get result contents from html.
 
+    Input: text is html of the courses, ulist is an empty list []
+    Output : ulist will include all the courses list in text
     Parameters: List, String
     Returns: None
     """
@@ -253,11 +247,12 @@ def get_contents(ulist, text):
         ulist.append(ui)
 
 
-# input: urlist is the courses list we get from get_contents
-# output : save courses in a file "DeAnza2020spring.csv"
 def save_contents(filename, firstline, urlist):
     """
     Save course result to a .csv file.
+
+    input : urlist is the courses list we get from get_contents
+    output : save courses in a file "DeAnza2020spring.csv"
 
     Parameters: String, String, List
     Returns: None
