@@ -119,6 +119,9 @@ def findAppsMenu(driver):
         if "apps".lower() == txt.lower():  # No left menu found
             appMenu = menu
             break
+    if not appMenu:
+        logging.error("Apps menu is not found!")
+        sys.exit(1)
     time.sleep(2)  # Wait for the next page to come over
     appMenu.click()  # Open the menu
 
@@ -140,7 +143,7 @@ def lookUpClasses(driver):
             classes = myappsclass
             break
     if not classes:
-        logging.info("No Look Up Classes feature found in the app list!")
+        logging.error("No Look Up Classes feature found in the app list!")
         sys.exit(-1)
     return classes
 
@@ -276,6 +279,8 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
+
+    logging.basicConfig(filename='crawler.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
     driver = webdriver.Chrome()
     login_myportal(driver)
     # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
