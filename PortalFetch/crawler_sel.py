@@ -40,7 +40,7 @@ def advanceSearch(driver):
     Parameters: webdriver
     Returns: None
     """
-    # Locate and click the Submit button
+    # Locate and click the Advanced Search  button
     inputs = driver.find_elements_by_tag_name("input")
     submit = ""
     for ipt in inputs:
@@ -48,6 +48,9 @@ def advanceSearch(driver):
                 "Advanced Search" == ipt.get_attribute("value"):
             submit = ipt
             break
+    if not submit:
+        logging.info("Advanced Search is not found!")
+        sys.exit(-1)
     submit.click()
 
 
@@ -212,9 +215,9 @@ def waitUtilPageLoaded(driver):
     """
     count = 0
     while True and count < 30:
+        count += 1
         try:
             driver.find_element_by_class_name("banner_copyright")
-            count += 1
             break
         except:
             logging.info("retry after 1 second...")
