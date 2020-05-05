@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Fetch course information from De Anza myportal.
 
-It requires the users input their own user name and password.
+It requires file 'user.ini' to load the user's own user name and password.
 """
 from configparser import ConfigParser
 from selenium import webdriver
