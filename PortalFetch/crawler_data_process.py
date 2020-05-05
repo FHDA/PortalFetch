@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+"""Process html course information to save in a .csv file.
+
+It requires file 'user.ini' to load the user's own user name and password.
+"""
 from bs4 import BeautifulSoup
 import csv
 import logging
-from configparser import ConfigParser
+
 
 class DataProcess:
-
     def __get_contents(self, ulist, text):
         """
         Get result contents from html.
@@ -21,7 +25,6 @@ class DataProcess:
             for td in tr:
                 ui.append(td.string)
             ulist.append(ui)
-
 
     def __save_contents(self, filename, firstline, urlist):
         """
@@ -46,7 +49,6 @@ class DataProcess:
                 else:
                     writer.writerow(urlist[i])
         logging.info("Download Finished!")
-
 
     def data_process(self, text, filename, firstline):
         courseList = []
