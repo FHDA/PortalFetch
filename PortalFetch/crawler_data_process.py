@@ -9,6 +9,9 @@ import logging
 
 
 class DataProcess:
+    """
+    Deputy HTML text to save in a .csv file.
+    """
     def __get_contents(self, ulist, text):
         """
         Get result contents from html.
@@ -51,6 +54,16 @@ class DataProcess:
         logging.info("Download Finished!")
 
     def data_process(self, text, filename, firstline):
+        """
+        Deputy HTML text to save in a .csv file
+
+        input:  'text' is the H TML string.
+                'filename' is the name of the saved .csv.
+                'firstline' is the first line of the .csv.
+        output: save courses in a file 'filename'.csv.
+        Parameters: String, String, String
+        Return: None
+        """
         courseList = []
         self.__get_contents(courseList, text)  # Extract course information from html
         self.__save_contents(filename, firstline, courseList)  # Save course information as a csv file
