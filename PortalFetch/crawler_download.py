@@ -29,8 +29,7 @@ options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
 def submitClick(driver):
-    """
-    Search and click sumbit button in the search by term page.
+    """Search and click sumbit button in the search by term page.
 
     Parameters: webdriver
     Returns: None
@@ -48,13 +47,11 @@ def submitClick(driver):
 
 
 def advanceSearch(driver):
-    """
-    Locate 'Advanced Search' button and click in the 'Look Up Classes' page.
+    """Locate 'Advanced Search' button and click in the 'Look Up Classes' page.
 
     Parameters: webdriver
     Returns: None
     """
-    # Locate and click the Advanced Search  button
     inputs = driver.find_elements_by_tag_name("input")
     submit = None
     for selection in inputs:
@@ -68,54 +65,44 @@ def advanceSearch(driver):
 
 
 def login_myportal(driver):
-    """
-    Open myportal website and login.
+    """Open myportal website and login.
 
     Parameters: webdriver
     Returns: None
     """
-    # Open the browser (The true url is：https://myportal.fhda.edu/）
     driver.get("https://myportal.fhda.edu/")
     try:
-        # input username
         username = parser.get('campus', 'username')
         driver.find_element_by_id("j_username").send_keys(username)
-        # input password
         password = parser.get('campus', 'password')
         driver.find_element_by_id("j_password").send_keys(password)
         driver.find_element_by_id(
-            "btn-eventId-proceed").click()  # Wait for the response from the next page and make sure the page is loaded!
+            "btn-eventId-proceed").click()
         logger.info("Log in finished.")
     except:
         raise KeyError("Login failed, please check input username/password!")
 
 
 def openSearchPage(driver):
-    """
-    Click 'Apps'->'Look Up Classes' and open search page.
+    """Click 'Apps'->'Look Up Classes' and open search page.
 
     Parameters: webdriver
     Returns: None
     """
-    # Find the Apps menu and click
     findAppsMenu(driver)
-    # Find in App List（Look Up Classes）button
     classes = lookUpClasses(driver)
-    mainWindowName = driver.window_handles[0]  # Main window name
+    mainWindowName = driver.window_handles[0]
     classes.click()
-    time.sleep(2)  # Make sure the new window is open
-    # Switch to the newly opened window, because this window is the course search page, you must switch the program pointer to this window to operate this window
-    windowNames = driver.window_handles  # Get all window names
+    time.sleep(2)
+    windowNames = driver.window_handles
     for name in windowNames:
         if mainWindowName != name:
-            driver.switch_to_window(name)  # Do not switch to the main window because the search page opens from the main window
-    # Waiting for elements in the page to appear, indicating that the page has finished loading
+            driver.switch_to_window(name)
     waitUtilPageLoaded(driver)
 
 
 def findAppsMenu(driver):
-    """
-    Find Apps menu.
+    """Find Apps menu.
 
     Parameters: webdriver
     Returns: None
@@ -124,18 +111,17 @@ def findAppsMenu(driver):
     appMenu = []
     for menu in menus:
         txt = menu.text
-        if "apps" == txt.lower():  # No left menu found
+        if "apps" == txt.lower():
             appMenu = menu
             break
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
-    time.sleep(2)  # Wait for the next page to come over
-    appMenu.click()  # Open the menu
+    time.sleep(2)
+    appMenu.click()
 
 
 def lookUpClasses(driver):
-    """
-    Find app list.
+    """Find app list.
 
     Parameters: webdriver
     Returns: classes
@@ -154,32 +140,28 @@ def lookUpClasses(driver):
 
 
 def fillAdvanceSearch(driver):
-    """
-    Fill advance search.
+    """Fill advance search.
 
     Go to the advanced options page and start filling in various search terms
     Parameters: webdriver
     Returns: None
     """
-    # Select all options in Subject list
     subjectList = driver.find_element_by_id("subj_id")  # web element
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
     subjectListSelect = Select(subjectList)
     logger.info("Start to select all the contents in the multi-selection drop-down box.")
     for i in range(0, len(subjectOptions)):
         subjectListSelect.select_by_index(i)
-    # Submit search and click
     sectionSearch(driver)
 
 
 def sectionSearch(driver):
-    """
-    Locate section search button and click.
+    """Locate section search button and click.
 
     Parameters: webdriver
     Returns: None
     """
-    ipts = driver.find_elements_by_tag_name("input")  # list of Web Element
+    ipts = driver.find_elements_by_tag_name("input")
     submit = None
     for ipt in ipts:
         if "submit" == ipt.get_attribute("type").lower() and \
@@ -193,27 +175,21 @@ def sectionSearch(driver):
 
 
 def saveResult(driver):
-    """
-    Save the results of courses to a html.
+    """Save the results of courses to a html.
 
     Parameters: webdriver
     Returns: html
     Return type: String
     """
     waitUtilPageLoaded(driver)
-    # Scroll down a page to show the table (no practical meaning, just look at the effect)
     actions = ActionChains(driver)
     actions.send_keys(Keys.PAGE_DOWN).perform()
-    # After loading is complete, the entire form page
     html = driver.page_source
-    time.sleep(5)  # Wait for a while, let people take a look, in fact, it does not make sense to the programmer
+    time.sleep(5)
     return html
 
-
-# Wait until the page is loaded! This only applies to child pages, not to the main page, because there is no banner_copyright information in the main page
 def waitUtilPageLoaded(driver):
-    """
-    Wait until page loaded.
+    """Wait until page loaded.
 
     Parameters: webdriver
     Returns: None
@@ -227,8 +203,7 @@ def waitUtilPageLoaded(driver):
 
 
 def main():
-    """
-    Download course information from De Anza myportal.
+    """Download course information from De Anza myportal.
 
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
@@ -236,7 +211,7 @@ def main():
     
     driver = webdriver.Chrome()
     login_myportal(driver)
-    # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
+
     web_driver_counter = 400
     list_group_item = None
     while web_driver_counter:
@@ -250,26 +225,16 @@ def main():
         raise NoSuchElementException("Could not find list-group item!")
 
     try:
-        # Course search page from homepage after login
         openSearchPage(driver)
-
-        # choose course
-        selectelement = driver.find_element_by_tag_name("select")  # Because the page has only one drop-down box
-        # Select specified course
-        quarter_downlist = Select(selectelement)  # a Select object
+        selectelement = driver.find_element_by_tag_name("select")
+        quarter_downlist = Select(selectelement)
         value = parser.get('db','db_value')
         quarter_downlist.select_by_value(value)
-        # Element positioning through select objects, value positioning (value of option)
-        # click 'Submit' button
         submitClick(driver)
-        # click 'Advance Search' button
         advanceSearch(driver)
-        # Wait for a while to make sure the page loads
         waitUtilPageLoaded(driver)
-        # Go to the advanced options page and start filling in various search terms
         fillAdvanceSearch(driver)
-        # Save searched courses
-        html = saveResult(driver)  # see method
+        html = saveResult(driver)
         filename = parser.get('db', 'db_filename')
         firstline = parser.get('db', 'db_firstline')
         object = DataProcess()
