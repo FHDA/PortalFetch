@@ -3,18 +3,30 @@
 
 It requires file 'user.ini' to load the user's own user name and password.
 """
+import sys
+import time
+import logging
+import chromedriver_binary
+import datetime
 from configparser import ConfigParser
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
-import sys
-import time
-import chromedriver_binary
-import logging
-from PortalFetch.crawler_data_process import DataProcess
+from selenium.common.exceptions import ElementNotVisibleException
+from crawler_data_process import DataProcess
 
+logging.basicConfig(filename = '../log/' + 
+                str(datetime.datetime.now()).replace(' ', '_').replace(':', '')[:17] + '_crawler.log', 
+                level=logging.INFO, 
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+parser = ConfigParser()
+parser.read('dev.ini')
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors')
 
 def submitClick(driver):
     """
@@ -24,11 +36,13 @@ def submitClick(driver):
     Returns: None
     """
     inputs = driver.find_elements_by_tag_name("input")
-    submit = ""
-    for input in inputs:
-        if "submit" == input.get_attribute("type") and input.is_enabled() and input.is_displayed():
-            submit = input
+    submit = None
+    for selection in inputs:
+        if "submit" == selection.get_attribute("type") and selection.is_enabled() and selection.is_displayed():
+            submit = selection
             break
+    if not submit:
+        raise NoSuchElementException("Input element is not found!")
     submit.click()
     time.sleep(2)  # Waiting for completion
 
@@ -42,15 +56,14 @@ def advanceSearch(driver):
     """
     # Locate and click the Advanced Search  button
     inputs = driver.find_elements_by_tag_name("input")
-    submit = ""
-    for ipt in inputs:
-        if "submit".lower() == ipt.get_attribute("type") and \
-                "Advanced Search" == ipt.get_attribute("value"):
-            submit = ipt
+    submit = None
+    for selection in inputs:
+        if "submit" == selection.get_attribute("type") and \
+                "Advanced Search" == selection.get_attribute("value"):
+            submit = selection
             break
     if not submit:
-        logging.info("Advanced Search is not found!")
-        sys.exit(-1)
+        raise NoSuchElementException("Advanced Search element is not found!")
     submit.click()
 
 
@@ -65,19 +78,16 @@ def login_myportal(driver):
     driver.get("https://myportal.fhda.edu/")
     try:
         # input username
-        parser = ConfigParser()
-        parser.read('user.ini')
-        username = parser.get('db', 'db_username')
+        username = parser.get('campus', 'username')
         driver.find_element_by_id("j_username").send_keys(username)
         # input password
-        password = parser.get('db', 'db_password')
+        password = parser.get('campus', 'password')
         driver.find_element_by_id("j_password").send_keys(password)
         driver.find_element_by_id(
             "btn-eventId-proceed").click()  # Wait for the response from the next page and make sure the page is loaded!
-        logging.info("Log in finished.")
+        logger.info("Log in finished.")
     except:
-        logging.error("Value Error: Log in failed.")
-        sys.exit(-1)
+        raise KeyError("Login failed, please check input username/password!")
 
 
 def openSearchPage(driver):
@@ -97,10 +107,8 @@ def openSearchPage(driver):
     # Switch to the newly opened window, because this window is the course search page, you must switch the program pointer to this window to operate this window
     windowNames = driver.window_handles  # Get all window names
     for name in windowNames:
-        if mainWindowName == name:
-            continue  # Do not switch to the main window because the search page opens from the main window
-        driver.switch_to_window(name)
-        break  # Because there are only two windows: the main window and the open window, switching directly to the end is over
+        if mainWindowName != name:
+            driver.switch_to_window(name)  # Do not switch to the main window because the search page opens from the main window
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver)
 
@@ -116,12 +124,11 @@ def findAppsMenu(driver):
     appMenu = []
     for menu in menus:
         txt = menu.text
-        if "apps".lower() == txt.lower():  # No left menu found
+        if "apps" == txt.lower():  # No left menu found
             appMenu = menu
             break
     if not appMenu:
-        logging.error("Apps menu is not found!")
-        sys.exit(1)
+        raise NoSuchElementException("Apps menu is not found!")
     time.sleep(2)  # Wait for the next page to come over
     appMenu.click()  # Open the menu
 
@@ -137,14 +144,12 @@ def lookUpClasses(driver):
     myappsclasses = driver.find_elements_by_class_name("myapps-item")
     classes = []
     for myappsclass in myappsclasses:
-        txt = myappsclass.find_element_by_class_name("myapps-item-label").text
-        txt = str.strip(txt)
+        txt = str.strip(myappsclass.find_element_by_class_name("myapps-item-label").text)
         if ("look up classes" == txt.lower()):
             classes = myappsclass
             break
     if not classes:
-        logging.error("No Look Up Classes feature found in the app list!")
-        sys.exit(-1)
+        raise NoSuchElementException("No Look Up Classes feature found in the app list!")
     return classes
 
 
@@ -160,7 +165,7 @@ def fillAdvanceSearch(driver):
     subjectList = driver.find_element_by_id("subj_id")  # web element
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
     subjectListSelect = Select(subjectList)
-    logging.info("Start to select all the contents in the multi-selection drop-down box. There are many options. You may have to wait for more time. Don't worry ...")
+    logger.info("Start to select all the contents in the multi-selection drop-down box.")
     for i in range(0, len(subjectOptions)):
         subjectListSelect.select_by_index(i)
     # Submit search and click
@@ -175,18 +180,15 @@ def sectionSearch(driver):
     Returns: None
     """
     ipts = driver.find_elements_by_tag_name("input")  # list of Web Element
-    submit = ""  # webElement
+    submit = None
     for ipt in ipts:
         if "submit" == ipt.get_attribute("type").lower() and \
-                "Section Search".lower() == ipt.get_attribute("value").lower():
+                "section search" == ipt.get_attribute("value").lower():
             submit = ipt
             break
-    try:
-        submit.click()
-    except:
-        logging.error("No submit button found! ! ")
-        sys.exit(-1)
-    # Wait for a while, wait for the page to open and make sure it loads
+    if not submit:
+        raise NoSuchElementException("No section search button found!")
+    submit.click()
     time.sleep(3)
 
 
@@ -217,15 +219,11 @@ def waitUtilPageLoaded(driver):
     Returns: None
     """
     count = 0
-    while True and count < 30:
+    while count < 30:
         count += 1
-        try:
-            driver.find_element_by_class_name("banner_copyright")
-            break
-        except:
-            logging.info("retry after 1 second...")
-            time.sleep(1)
-            pass
+        if driver.find_element_by_class_name("banner_copyright"):
+            return
+    raise ElementNotVisibleException("Could not load the full page!")
 
 
 def main():
@@ -235,45 +233,50 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    logging.basicConfig(filename='crawler.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+    
     driver = webdriver.Chrome()
     login_myportal(driver)
     # The way to judge is that the left menu can be found in the interface, and the menu style has list-group-item)
-    while True:
+    web_driver_counter = 400
+    list_group_item = None
+    while web_driver_counter:
         try:
-            driver.find_element_by_class_name("list-group-item")
-        except NoSuchElementException:
-            time.sleep(1)
-            logging.info('wait for seconds...')
-            continue
-        break
+            list_group_item = driver.find_element_by_class_name("list-group-item")
+        except:
+            pass
+        web_driver_counter -= 1
+    if not list_group_item:
+        logger.error("Could not find list-group item!")
+        raise NoSuchElementException("Could not find list-group item!")
 
-    # Course search page from homepage after login
-    openSearchPage(driver)
+    try:
+        # Course search page from homepage after login
+        openSearchPage(driver)
 
-    # choose course
-    selectelement = driver.find_element_by_tag_name("select")  # Because the page has only one drop-down box
-    # Select specified course
-    quarter_downlist = Select(selectelement)  # a Select object
-    parser = ConfigParser()
-    parser.read('dev.ini')
-    value = parser.get('db','db_value')
-    quarter_downlist.select_by_value(value)
-    # Element positioning through select objects, value positioning (value of option)
-    # click 'Submit' button
-    submitClick(driver)
-    # click 'Advance Search' button
-    advanceSearch(driver)
-    # Wait for a while to make sure the page loads
-    waitUtilPageLoaded(driver)
-    # Go to the advanced options page and start filling in various search terms
-    fillAdvanceSearch(driver)
-    # Save searched courses
-    html = saveResult(driver)  # see method
-    filename = parser.get('db', 'db_filename')
-    firstline = parser.get('db', 'db_firstline')
-    object = DataProcess()
-    object.data_process(html,filename, firstline)
+        # choose course
+        selectelement = driver.find_element_by_tag_name("select")  # Because the page has only one drop-down box
+        # Select specified course
+        quarter_downlist = Select(selectelement)  # a Select object
+        value = parser.get('db','db_value')
+        quarter_downlist.select_by_value(value)
+        # Element positioning through select objects, value positioning (value of option)
+        # click 'Submit' button
+        submitClick(driver)
+        # click 'Advance Search' button
+        advanceSearch(driver)
+        # Wait for a while to make sure the page loads
+        waitUtilPageLoaded(driver)
+        # Go to the advanced options page and start filling in various search terms
+        fillAdvanceSearch(driver)
+        # Save searched courses
+        html = saveResult(driver)  # see method
+        filename = parser.get('db', 'db_filename')
+        firstline = parser.get('db', 'db_firstline')
+        object = DataProcess()
+        object.data_process(html,filename, firstline)
+    except Exception as e:
+        logger.error(str(e))
+        sys.exit(-1)
 
 
 if __name__ == "__main__":
