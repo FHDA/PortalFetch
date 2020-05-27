@@ -28,42 +28,17 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
-def submitClick(driver):
-    """Search and click sumbit button in the search by term page.
-
-    Parameters: webdriver
-    Returns: None
-    """
-    inputs = driver.find_elements_by_tag_name("input")
-    submit = None
-    for selection in inputs:
-        if "submit" == selection.get_attribute("type") and selection.is_enabled() and selection.is_displayed():
-            submit = selection
-            break
-    if not submit:
-        raise NoSuchElementException("Input element is not found!")
-    submit.click()
-    time.sleep(2)  # Waiting for completion
-
-
-def advanceSearch(driver):
-    """Locate 'Advanced Search' button and click in the 'Look Up Classes' page.
-
-    Parameters: webdriver
-    Returns: None
-    """
-    inputs = driver.find_elements_by_tag_name("input")
-    submit = None
-    for selection in inputs:
-        if "submit" == selection.get_attribute("type") and \
-                "Advanced Search" == selection.get_attribute("value"):
-            submit = selection
-            break
-    if not submit:
-        raise NoSuchElementException("Advanced Search element is not found!")
-    submit.click()
-
 def locateButton(driver, button):
+    """Searches a specific button and click it if found.
+
+    Args:
+        driver: the webdriver object of this class
+        button: the intended button for search
+    Raises:
+        NoSuchElementException: The button is not found
+    Returns:
+        None
+    """
     inputs = driver.find_elements_by_tag_name("input")
     result = None
     for selection in inputs:
@@ -73,18 +48,31 @@ def locateButton(driver, button):
                 result = selection
                 break
         elif button == "submit":
-            if "submit" == selection.get_attribute("type") and selection.is_enabled() and selection.is_displayed():
+            if "submit" == selection.get_attribute("type") and \
+                selection.is_enabled() and selection.is_displayed():
+                result = selection
+                break
+        elif button == "section":
+            print(selection.get_attribute("value"))
+            if "submit" == selection.get_attribute("type").lower() and \
+                "section search" == selection.get_attribute("value").lower():
                 result = selection
                 break
     if not result:
         raise NoSuchElementException(button+" element is not found!")
+    else:
+        result.click()
 
 
 def login_myportal(driver):
     """Open myportal website and login.
 
-    Parameters: webdriver
-    Returns: None
+    Args:
+        driver: the webdriver object of this class
+    Raises:
+        KeyError: Login is failed with given information
+    Returns:
+        None
     """
     driver.get("https://myportal.fhda.edu/")
     try:
@@ -102,8 +90,11 @@ def login_myportal(driver):
 def openSearchPage(driver):
     """Click 'Apps'->'Look Up Classes' and open search page.
 
-    Parameters: webdriver
-    Returns: None
+    Args:
+        driver: the webdriver object of this class
+        button: the intended button for search
+    Returns:
+        None
     """
     findAppsMenu(driver)
     classes = lookUpClasses(driver)
@@ -113,15 +104,19 @@ def openSearchPage(driver):
     windowNames = driver.window_handles
     for name in windowNames:
         if mainWindowName != name:
-            driver.switch_to_window(name)
-    waitUtilPageLoaded(driver)
+            driver.switch_to.window(name)
+    waitUtilPageLoaded(driver, 30)
 
 
 def findAppsMenu(driver):
     """Find Apps menu.
 
-    Parameters: webdriver
-    Returns: None
+    Args:
+        driver: the webdriver object of this class
+    Raises:
+        NoSuchElementException: The app menu is not found
+    Returns:
+        None
     """
     menus = driver.find_elements_by_class_name("list-group-item")
     appMenu = []
@@ -129,19 +124,21 @@ def findAppsMenu(driver):
         txt = menu.text
         if "apps" == txt.lower():
             appMenu = menu
-            break
+            appMenu.click()
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
-    time.sleep(2)
-    appMenu.click()
+    
 
 
 def lookUpClasses(driver):
     """Find app list.
 
-    Parameters: webdriver
-    Returns: classes
-    Return type: list
+    Args:
+        driver: the webdriver object of this class
+    Raises:
+        NoSuchElementException: The app menu is not found
+    Returns:
+        classes: the list of found classes
     """
     myappsclasses = driver.find_elements_by_class_name("myapps-item")
     classes = []
@@ -156,11 +153,12 @@ def lookUpClasses(driver):
 
 
 def fillAdvanceSearch(driver):
-    """Fill advance search.
+    """Go to the advanced options page and start filling in various search terms
 
-    Go to the advanced options page and start filling in various search terms
-    Parameters: webdriver
-    Returns: None
+    Args:
+        driver: the webdriver object of this class
+    Returns:
+        None
     """
     subjectList = driver.find_element_by_id("subj_id")  # web element
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
@@ -168,51 +166,36 @@ def fillAdvanceSearch(driver):
     logger.info("Start to select all the contents in the multi-selection drop-down box.")
     for i in range(0, len(subjectOptions)):
         subjectListSelect.select_by_index(i)
-    sectionSearch(driver)
-
-
-def sectionSearch(driver):
-    """Locate section search button and click.
-
-    Parameters: webdriver
-    Returns: None
-    """
-    ipts = driver.find_elements_by_tag_name("input")
-    submit = None
-    for ipt in ipts:
-        if "submit" == ipt.get_attribute("type").lower() and \
-                "section search" == ipt.get_attribute("value").lower():
-            submit = ipt
-            break
-    if not submit:
-        raise NoSuchElementException("No section search button found!")
-    submit.click()
-    time.sleep(3)
+    locateButton(driver, "section")
 
 
 def saveResult(driver):
     """Save the results of courses to a html.
 
-    Parameters: webdriver
-    Returns: html
-    Return type: String
+    Args:
+        driver: the webdriver object of this class
+    Returns:
+        html: the html of result page source
     """
-    waitUtilPageLoaded(driver)
+    waitUtilPageLoaded(driver, 30)
     actions = ActionChains(driver)
     actions.send_keys(Keys.PAGE_DOWN).perform()
     html = driver.page_source
     time.sleep(5)
     return html
 
-def waitUtilPageLoaded(driver):
+def waitUtilPageLoaded(driver, count):
     """Wait until page loaded.
 
-    Parameters: webdriver
-    Returns: None
+    Args:
+        driver: the webdriver object of this class
+    Raises:
+        ElementNotVisibleException: Could not load full page in given count-down
+    Returns:
+        None
     """
-    count = 0
-    while count < 30:
-        count += 1
+    while count:
+        count -= 1
         if driver.find_element_by_class_name("banner_copyright"):
             return
     raise ElementNotVisibleException("Could not load the full page!")
@@ -246,11 +229,13 @@ def main():
         quarter_downlist = Select(selectelement)
         value = parser.get('db','db_value')
         quarter_downlist.select_by_value(value)
-        submitClick(driver)
-        advanceSearch(driver)
-        waitUtilPageLoaded(driver)
+        locateButton(driver, "submit")
+        locateButton(driver, "advance")
+        print(1)
+        waitUtilPageLoaded(driver, 30)
         fillAdvanceSearch(driver)
         html = saveResult(driver)
+        print(1)
         filename = parser.get('db', 'db_filename')
         firstline = parser.get('db', 'db_firstline')
         object = DataProcess()
