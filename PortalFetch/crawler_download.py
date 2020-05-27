@@ -63,6 +63,22 @@ def advanceSearch(driver):
         raise NoSuchElementException("Advanced Search element is not found!")
     submit.click()
 
+def locateButton(driver, button):
+    inputs = driver.find_elements_by_tag_name("input")
+    result = None
+    for selection in inputs:
+        if button == "advance":
+            if "submit" == selection.get_attribute("type") and \
+                "Advanced Search" == selection.get_attribute("value"):
+                result = selection
+                break
+        elif button == "submit":
+            if "submit" == selection.get_attribute("type") and selection.is_enabled() and selection.is_displayed():
+                result = selection
+                break
+    if not result:
+        raise NoSuchElementException(button+" element is not found!")
+
 
 def login_myportal(driver):
     """Open myportal website and login.
