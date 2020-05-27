@@ -29,7 +29,7 @@ options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
 def locateButton(driver, button):
-    """Searches a specific button and click it if found.
+    """Search a specific button and click it if found.
 
     Args:
         driver: the webdriver object of this class
@@ -38,30 +38,26 @@ def locateButton(driver, button):
         NoSuchElementException: The button is not found
     Returns:
         None
+
     """
     inputs = driver.find_elements_by_tag_name("input")
     result = None
     for selection in inputs:
-        if button == "advance":
-            if "submit" == selection.get_attribute("type") and \
-                "Advanced Search" == selection.get_attribute("value"):
-                result = selection
-                break
-        elif button == "submit":
-            if "submit" == selection.get_attribute("type") and \
-                selection.is_enabled() and selection.is_displayed():
-                result = selection
-                break
-        elif button == "section":
-            print(selection.get_attribute("value"))
-            if "submit" == selection.get_attribute("type").lower() and \
-                "section search" == selection.get_attribute("value").lower():
-                result = selection
-                break
+        if selection.get_attribute("type") == "submit":
+            if button == "advance":
+                if  "Advanced Search" == selection.get_attribute("value"):
+                    result = selection
+            elif button == "submit":
+                if selection.is_enabled() and selection.is_displayed():
+                    result = selection
+            elif button == "section":
+                if "section search" == selection.get_attribute("value").lower():
+                    result = selection
+            if result:
+                result.click()
+                return
     if not result:
         raise NoSuchElementException(button+" element is not found!")
-    else:
-        result.click()
 
 
 def login_myportal(driver):
@@ -73,6 +69,7 @@ def login_myportal(driver):
         KeyError: Login is failed with given information
     Returns:
         None
+
     """
     driver.get("https://myportal.fhda.edu/")
     try:
@@ -95,6 +92,7 @@ def openSearchPage(driver):
         button: the intended button for search
     Returns:
         None
+
     """
     findAppsMenu(driver)
     classes = lookUpClasses(driver)
@@ -117,6 +115,7 @@ def findAppsMenu(driver):
         NoSuchElementException: The app menu is not found
     Returns:
         None
+
     """
     menus = driver.find_elements_by_class_name("list-group-item")
     appMenu = []
@@ -139,6 +138,7 @@ def lookUpClasses(driver):
         NoSuchElementException: The app menu is not found
     Returns:
         classes: the list of found classes
+
     """
     myappsclasses = driver.find_elements_by_class_name("myapps-item")
     classes = []
@@ -153,12 +153,13 @@ def lookUpClasses(driver):
 
 
 def fillAdvanceSearch(driver):
-    """Go to the advanced options page and start filling in various search terms
+    """Go to the advanced options page and start filling in various search terms.
 
     Args:
         driver: the webdriver object of this class
     Returns:
         None
+
     """
     subjectList = driver.find_element_by_id("subj_id")  # web element
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
@@ -176,6 +177,7 @@ def saveResult(driver):
         driver: the webdriver object of this class
     Returns:
         html: the html of result page source
+
     """
     waitUtilPageLoaded(driver, 30)
     actions = ActionChains(driver)
@@ -193,6 +195,7 @@ def waitUtilPageLoaded(driver, count):
         ElementNotVisibleException: Could not load full page in given count-down
     Returns:
         None
+
     """
     while count:
         count -= 1
@@ -207,7 +210,6 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    
     driver = webdriver.Chrome()
     login_myportal(driver)
 
@@ -231,11 +233,9 @@ def main():
         quarter_downlist.select_by_value(value)
         locateButton(driver, "submit")
         locateButton(driver, "advance")
-        print(1)
         waitUtilPageLoaded(driver, 30)
         fillAdvanceSearch(driver)
         html = saveResult(driver)
-        print(1)
         filename = parser.get('db', 'db_filename')
         firstline = parser.get('db', 'db_firstline')
         object = DataProcess()
