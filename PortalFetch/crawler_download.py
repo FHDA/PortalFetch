@@ -43,21 +43,18 @@ def locateButton(driver, button):
     inputs = driver.find_elements_by_tag_name("input")
     result = None
     for selection in inputs:
+        val = selection.get_attribute("value").lower()
         if selection.get_attribute("type") == "submit":
-            if button == "advance":
-                if  "Advanced Search" == selection.get_attribute("value"):
-                    result = selection
-            elif button == "submit":
-                if selection.is_enabled() and selection.is_displayed():
-                    result = selection
-            elif button == "section":
-                if "section search" == selection.get_attribute("value").lower():
-                    result = selection
+            if button == "advance" and "advanced search" == val:
+                result = selection
+            elif button == "submit" and selection.is_enabled() and selection.is_displayed():
+                result = selection
+            elif button == "section" and "section search" == val:
+                result = selection
             if result:
                 result.click()
                 return
-    if not result:
-        raise NoSuchElementException(button+" element is not found!")
+    raise NoSuchElementException(button + " element is not found!")
 
 
 def login_myportal(driver):
@@ -71,6 +68,7 @@ def login_myportal(driver):
         None
 
     """
+    # Open MyPortal Browser
     driver.get("https://myportal.fhda.edu/")
     try:
         username = parser.get('campus', 'username')
@@ -146,14 +144,12 @@ def lookUpClasses(driver):
         txt = str.strip(myappsclass.find_element_by_class_name("myapps-item-label").text)
         if ("look up classes" == txt.lower()):
             classes = myappsclass
-            break
-    if not classes:
-        raise NoSuchElementException("No Look Up Classes feature found in the app list!")
-    return classes
+            return classes
+    raise NoSuchElementException("No Look Up Classes feature found in the app list!")
 
 
 def fillAdvanceSearch(driver):
-    """Go to the advanced options page and start filling in various search terms.
+    """Go to the advanced options page and select all options in Subject list
 
     Args:
         driver: the webdriver object of this class
@@ -165,7 +161,7 @@ def fillAdvanceSearch(driver):
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
     subjectListSelect = Select(subjectList)
     logger.info("Start to select all the contents in the multi-selection drop-down box.")
-    for i in range(0, len(subjectOptions)):
+    for i in range(len(subjectOptions)):
         subjectListSelect.select_by_index(i)
     locateButton(driver, "section")
 
@@ -180,10 +176,7 @@ def saveResult(driver):
 
     """
     waitUtilPageLoaded(driver, 30)
-    actions = ActionChains(driver)
-    actions.send_keys(Keys.PAGE_DOWN).perform()
     html = driver.page_source
-    time.sleep(5)
     return html
 
 def waitUtilPageLoaded(driver, count):
@@ -213,6 +206,7 @@ def main():
     driver = webdriver.Chrome()
     login_myportal(driver)
 
+    # Wait for the 'list-group-item' can be found and clicked
     web_driver_counter = 400
     list_group_item = None
     while web_driver_counter:
@@ -226,22 +220,29 @@ def main():
         raise NoSuchElementException("Could not find list-group item!")
 
     try:
+    	# Course search page from homepage after login
         openSearchPage(driver)
         selectelement = driver.find_element_by_tag_name("select")
+        # Select specified course
         quarter_downlist = Select(selectelement)
         value = parser.get('db','db_value')
         quarter_downlist.select_by_value(value)
+        # click 'Submit' button
         locateButton(driver, "submit")
+        # click 'Advance Search' button
         locateButton(driver, "advance")
+        # Wait while the page is loading
         waitUtilPageLoaded(driver, 30)
+        # Go to the advanced options page and start filling in various search terms
         fillAdvanceSearch(driver)
+        # Save searched courses
         html = saveResult(driver)
         filename = parser.get('db', 'db_filename')
         firstline = parser.get('db', 'db_firstline')
         object = DataProcess()
         object.data_process(html,filename, firstline)
     except Exception as e:
-        logger.error(str(e))
+        logger.error(repr(e))
         sys.exit(-1)
 
 
