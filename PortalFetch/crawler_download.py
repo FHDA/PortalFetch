@@ -149,7 +149,7 @@ def lookUpClasses(driver):
 
 
 def fillAdvanceSearch(driver):
-    """Go to the advanced options page and select all options in Subject list
+    """Go to the advanced options page and select all options in Subject list.
 
     Args:
         driver: the webdriver object of this class
