@@ -23,7 +23,7 @@ logging.basicConfig(filename = '../log/' +
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 parser = ConfigParser()
-parser.read('dev.ini')
+parser.read('crawler_setting.ini')
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
@@ -231,7 +231,7 @@ def main():
         selectelement = driver.find_element_by_tag_name("select")
         # Select specified course
         quarter_downlist = Select(selectelement)
-        value = parser.get('db','db_value')
+        value = parser.get('config','quarter_value')
         quarter_downlist.select_by_value(value)
         # click 'Submit' button
         locateButton(driver, "submit")
@@ -243,10 +243,9 @@ def main():
         fillAdvanceSearch(driver)
         # Save searched courses
         html = saveResult(driver)
-        filename = parser.get('db', 'db_filename')
-        firstline = parser.get('db', 'db_firstline')
-        object = DataProcess()
-        object.data_process(html,filename, firstline)
+        filename = parser.get('config', 'filename')
+        title = parser.get('config', 'title')
+        DataProcess().data_process(html, filename, title)
     except Exception as e:
         logger.error(repr(e))
         sys.exit(-1)

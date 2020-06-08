@@ -111,3 +111,14 @@ Reference:
 
 1. https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716
 2. https://github.com/joelparkerhenderson/git_commit_message#begin-with-a-short-summary-line
+
+## setting.config format  
+ 
+    [config]    
+    quarter_value  = <quarter_value to be selected>  
+    filename  = <filename>.csv  
+    title  = <title of the csv file>  
+       
+    [campus]  
+    username = <FHDA MyPortal username>
+    password = <FHDA MyPortal password>
