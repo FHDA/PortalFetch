@@ -92,15 +92,20 @@ def openSearchPage(driver):
         None
 
     """
+    # Find the Apps menu and click
     findAppsMenu(driver)
+    # Find in App List（Look Up Classes）button
     classes = lookUpClasses(driver)
+    # Get ain window name
     mainWindowName = driver.window_handles[0]
     classes.click()
+    # Make sure the new window is open
     time.sleep(2)
     windowNames = driver.window_handles
     for name in windowNames:
         if mainWindowName != name:
             driver.switch_to.window(name)
+    # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
 
 
@@ -157,6 +162,7 @@ def fillAdvanceSearch(driver):
         None
 
     """
+    # Select all options in Subject list
     subjectList = driver.find_element_by_id("subj_id")  # web element
     subjectOptions = subjectList.find_elements_by_tag_name("option")  # list
     subjectListSelect = Select(subjectList)
