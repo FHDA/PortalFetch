@@ -23,7 +23,7 @@ logging.basicConfig(filename = '../log/' +
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 parser = ConfigParser()
-parser.read('crawler_setting.ini')
+parser.read('crawler.config')
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
