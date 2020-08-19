@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""Deputy .html file to .json file.
+
+It needs to import an .html file of De Anza courses information website.
+"""
 from bs4 import BeautifulSoup
 from lxml.html import fromstring, tostring
 import json
@@ -90,7 +95,6 @@ class DataProcess:
         Parameters: string, string, string, string
         Returns: None
         """
-
         f = open(htmlFile, "r")
         file = f.read()
         courseList = []
