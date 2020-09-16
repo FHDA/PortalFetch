@@ -10,15 +10,21 @@ import collections
 
 
 class DataProcess:
-    def __getContents(self, courseList, html):
-        """
-        Get result contents from html.
+    """Deputy .html file to .json file.
 
-        Input: html is html of the courses, ulist is an empty list []
-        Output : ulist will include all the courses list in text
-        Parameters: List, String
-        Returns: None
+    It needs to import an .html file from De Anza courses information website.
+    """
+
+    def __getRustContents(self, html):
         """
+        Get rust list contents from html.
+
+        Input: html is html of the courses
+        Output : courseList will include all the courses list in text and some other contents
+        Parameters: String
+        Returns: List
+        """
+        rustCourseList = []
         soup = BeautifulSoup(html, 'lxml')
         trs = soup.find_all('tr')
         for tr in trs:
@@ -31,15 +37,28 @@ class DataProcess:
                 else:
                     ui.append(td)
             if len(ui) == 19:
-                temp = []
-                for u in ui:
-                    if u is not None:
-                        if type(u) is not str:
-                            soup = BeautifulSoup(str(u), 'lxml')
-                            u = soup.get_text()
-                        temp.append((u))
-                courseList.append(temp[:18])
+                rustCourseList.append(ui[:18])
+        return rustCourseList
 
+    def __getList(self, courseList, html):
+        """
+        Get result contents from html.
+
+        Input: html is html of the courses, courseList is an empty list []
+        Output : courseList will include all the courses list in text
+        Parameters: List, String
+        Returns: None
+        """
+        ui = self.__getRustContents(html)
+        print(ui)
+        for course in ui:
+            temp = []
+            for ele in course:
+                if type(ele) is not str:
+                    soup = BeautifulSoup(str(ele), 'lxml')
+                    ele = soup.get_text()
+                temp.append((ele))
+            courseList.append(temp)
 
     def __deputyList(self, courseList):
         """
@@ -47,7 +66,7 @@ class DataProcess:
 
         Input: courseLise is courses list from __getContents
         Output : .json file  will include all the courses informatiom
-        Parameters: List,
+        Parameters: List
         Returns: None
         """
         dic = {}
@@ -64,7 +83,7 @@ class DataProcess:
                     count = -1
                     for ele in courseList[i]:
                         count += 1
-                        if count != 3 and count != 2 :
+                        if count != 3 and count != 2:
                             di[title[count]] = ele if ele != '\xa0' else ""
                     di['lab'] = []
                     dic[courseList[i][3]].append(di)
@@ -72,7 +91,7 @@ class DataProcess:
                     dl = {}
                     count = -1
                     j = i-1
-                    while courseList[j][3]== '\xa0':
+                    while courseList[j][3] == '\xa0':
                         j -= 1
                     subj = courseList[j][3]
                     for ele in courseList[i]:
@@ -81,7 +100,6 @@ class DataProcess:
                             dl[title[count]] = ele
                     dic[subj][-1]['lab'].append(dl)
         return dic
-
 
     def htmlToJson(self, htmlFile, jsonFile, quarter, fetchTime):
         """
@@ -98,13 +116,23 @@ class DataProcess:
         f = open(htmlFile, "r")
         file = f.read()
         courseList = []
-        self.__getContents(courseList, file)
+        self.__getList(courseList, file)
+        print(courseList)
+        for i in courseList:
+            print(i)
         d = self.__deputyList(courseList)
+
         output = {}
-        output[quarter] ={}
+        output[quarter] = {}
         output[quarter]["FetchTime"] = fetchTime
         output[quarter]["CourseData"] = d
         with open(jsonFile, 'w') as outfile:
             json.dump(output, outfile, indent=4)
 
 
+c = DataProcess()
+htmlFile = "2018SummerFoothill.html"
+jsonFile = "2018SummerFoothill.json"
+quarter = "2018 Summer Foothill "
+fetchTime = "20200825"
+c.htmlToJson(htmlFile, jsonFile, quarter, fetchTime)
