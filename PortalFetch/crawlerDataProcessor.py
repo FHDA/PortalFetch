@@ -50,7 +50,6 @@ class DataProcess:
         Returns: None
         """
         ui = self.__getRustContents(html)
-        print(ui)
         for course in ui:
             temp = []
             for ele in course:
@@ -80,26 +79,47 @@ class DataProcess:
             else:
                 if courseList[i][0] != '\xa0':
                     di = {}
-                    count = -1
-                    for ele in courseList[i]:
-                        count += 1
-                        if count != 3 and count != 2:
-                            di[title[count]] = ele if ele != '\xa0' else ""
-                    di['lab'] = []
+                    self.__deputyCourseLine(title,courseList[i],di)
                     dic[courseList[i][3]].append(di)
                 elif courseList[i][0] == '\xa0':
                     dl = {}
-                    count = -1
-                    j = i-1
+                    # find the subject
+                    j = i - 1
                     while courseList[j][3] == '\xa0':
                         j -= 1
                     subj = courseList[j][3]
-                    for ele in courseList[i]:
-                        count += 1
-                        if ele != '\xa0':
-                            dl[title[count]] = ele
+                    self.__deputyLabLine(title, courseList[i], dl)
                     dic[subj][-1]['lab'].append(dl)
         return dic
+
+    def __deputyCourseLine(self, title, oneLine, emptyDiction):
+        """
+        Deputy one line of courseList to the diction with the key from title to help __deputyList.
+
+        Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
+        Parameters: List, List, Dictionary
+        Returns: None
+        """
+        count = -1
+        for ele in oneLine:
+            count += 1
+            if count != 2 and count != 3:
+                emptyDiction[title[count]] = ele if ele != '\xa0' else ""
+        emptyDiction['lab'] = []
+
+    def __deputyLabLine(self, title, labLine, emptyDiction):
+        """
+        Deputy one line of lab information to the diction with the key from title to help __deputyList.
+
+        Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
+        Parameters: List, List, Dictionary
+        Returns: None
+        """
+        count = -1
+        for ele in labLine:
+            count += 1
+            if ele != '\xa0':
+                emptyDiction[title[count]] = ele
 
     def htmlToJson(self, htmlFile, jsonFile, quarter, fetchTime):
         """
@@ -117,11 +137,7 @@ class DataProcess:
         file = f.read()
         courseList = []
         self.__getList(courseList, file)
-        print(courseList)
-        for i in courseList:
-            print(i)
         d = self.__deputyList(courseList)
-
         output = {}
         output[quarter] = {}
         output[quarter]["FetchTime"] = fetchTime
