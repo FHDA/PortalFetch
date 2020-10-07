@@ -4,9 +4,7 @@
 It needs to import an .html file of De Anza courses information website.
 """
 from bs4 import BeautifulSoup
-from lxml.html import fromstring, tostring
 import json
-import collections
 
 
 class DataProcess:
@@ -42,7 +40,7 @@ class DataProcess:
 
     def __getList(self, courseList, html):
         """
-        Get result contents from html.
+        Get course list from html.
 
         Input: html is html of the courses, courseList is an empty list []
         Output : courseList will include all the courses list in text
@@ -64,7 +62,7 @@ class DataProcess:
         Deputy courseList to a json file.
 
         Input: courseLise is courses list from __getContents
-        Output : .json file  will include all the courses informatiom
+        Output : .json file  will include all the courses information
         Parameters: List
         Returns: None
         """
@@ -72,15 +70,18 @@ class DataProcess:
         title = ['Select', 'CRN', 'Coreq', 'Subj', 'Crse', 'Sec', 'Cmp', 'Cred', 'Title', 'Days', 'Time', 'Act', 'Rem',
                  'WL Rem', 'Instructor', 'Date (MM/DD)', 'Location', 'Attribute', 'lab']
         for i in range(len(courseList)):
+            # Create a new subject
             if courseList[i][0] == 'Select':
                 subj = courseList[i+1][3]
                 d = []
                 dic[subj] = d
             else:
+                # deputy one line of course information
                 if courseList[i][0] != '\xa0':
                     di = {}
-                    self.__deputyCourseLine(title,courseList[i],di)
+                    self.__deputyCourseLine(title, courseList[i], di)
                     dic[courseList[i][3]].append(di)
+                # deputy lab information
                 elif courseList[i][0] == '\xa0':
                     dl = {}
                     # find the subject
@@ -96,7 +97,7 @@ class DataProcess:
         """
         Deputy one line of courseList to the diction.
 
-        Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
+        Input: title is a list of courses' key words, oneLine is a line of course information, emptyDiction is {}
         Parameters: List, List, Dictionary
         Returns: None
         """
@@ -109,7 +110,7 @@ class DataProcess:
 
     def __deputyLabLine(self, title, labLine, emptyDiction):
         """
-        Deputy one line of lab information to the diction with the key from title to help __deputyList.
+        Deputy one line of lab information to the diction.
 
         Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
         Parameters: List, List, Dictionary
@@ -129,7 +130,7 @@ class DataProcess:
                 jsonFile is .json file name you want to give for the output
                 quarter is the name of the course quarter.
                 fetchTime is the fetch time of crawler
-        Output : .json file  will include all the courses informatiom
+        Output : .json file  will include all the courses information
         Parameters: string, string, string, string
         Returns: None
         """
