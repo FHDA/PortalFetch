@@ -94,7 +94,7 @@ class DataProcess:
 
     def __deputyCourseLine(self, title, oneLine, emptyDiction):
         """
-        Deputy one line of courseList to the diction with the key from title to help __deputyList.
+        Deputy one line of courseList to the diction.
 
         Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
         Parameters: List, List, Dictionary
