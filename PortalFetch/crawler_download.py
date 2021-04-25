@@ -16,6 +16,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotVisibleException
 from crawler_data_process import DataProcess
+from webdriver_manager.chrome import ChromeDriverManager
 
 logging.basicConfig(filename = '../log/' + 
                 str(datetime.datetime.now()).replace(' ', '_').replace(':', '')[:17] + '_crawler.log', 
@@ -209,7 +210,7 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(ChromeDriverManager().install())
     login_myportal(driver)
 
     # Wait for the 'list-group-item' can be found and clicked

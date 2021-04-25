@@ -6,6 +6,7 @@ It requires file 'user.ini' to load the user's own user name and password.
 from bs4 import BeautifulSoup
 import csv
 import logging
+import bs4
 
 
 class DataProcess:
@@ -25,7 +26,10 @@ class DataProcess:
         for tr in trs:
             ui = []
             for td in tr:
-                ui.append(td.string)
+                if (type(td) != bs4.element.NavigableString):
+                    ui.append(td.get_text())
+                else:
+                    ui.append(td.string)
             ulist.append(ui)
 
     def __save_contents(self, filename, firstline, urlist):
@@ -42,7 +46,7 @@ class DataProcess:
             writer = csv.writer(f)
             writer.writerow([firstline])
 
-            for i in range(8, len(urlist)-1):
+            for i in range(7, len(urlist)-1):
                 if len(urlist[i]) >= 35:
                     writer.writerow([urlist[i][1], urlist[i][3], urlist[i][5],urlist[i][7], urlist[i][9], urlist[i][11],
                                 urlist[i][13], urlist[i][15], urlist[i][17],urlist[i][19], urlist[i][21], urlist[i][23],
