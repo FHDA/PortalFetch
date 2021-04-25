@@ -245,8 +245,9 @@ def main():
         # Save searched courses
         html = saveResult(driver)
         filename = parser.get('config', 'filename')
-        title = parser.get('config', 'title')
-        DataProcess().data_process(html, filename, title)
+        quarter = parser.get('config', 'quarter')
+        DataProcess().data_process(html, filename, quarter)
+        logging.info("Download Finished!")
     except Exception as e:
         logger.error(repr(e))
         sys.exit(-1)
