@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-"""Process html course information to save in a .csv file.
+"""Process html course information to save in a .json file.
 
 It requires file 'user.ini' to load the user's own user name and password.
 """
 from bs4 import BeautifulSoup
 import json
 import time
+import os
 
 
 class DataProcess:
@@ -123,12 +124,12 @@ class DataProcess:
             if ele != '\xa0':
                 emptyDiction[title[count]] = ele
 
-    def htmlToJson(self, htmlFile, jsonFile, quarter, fetchTime):
+    def htmlToJson(self, htmlFile, jsonFilename, quarter, fetchTime):
         """
         Deputy htmlFile to a json file.
 
         Input:  htmlFile is a .html file got from __deputyList,
-                jsonFile is .json file name you want to give for the output
+                jsonFilename is .json file name you want to give for the output
                 quarter is the name of the course quarter.
                 fetchTime is the fetch time of crawler
         Output : .json file  will include all the courses information
@@ -142,7 +143,13 @@ class DataProcess:
         output[quarter] = {}
         output[quarter]["FetchTime"] = fetchTime
         output[quarter]["CourseData"] = d
-        with open(jsonFile, 'w') as outfile:
+        if not os.path.exists('my_folder'):
+            try:
+                os.makedirs('../output')
+            except OSError as e:
+                logger.error("Unable to create output directory: %s", e)
+
+        with open('../output/' + jsonFilename, 'w') as outfile:
             json.dump(output, outfile, indent=4)
 
     def data_process(self, html, filename, quarter):
