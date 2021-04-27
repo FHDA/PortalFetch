@@ -143,7 +143,7 @@ class DataProcess:
         output[quarter] = {}
         output[quarter]["FetchTime"] = fetchTime
         output[quarter]["CourseData"] = d
-        if not os.path.exists('my_folder'):
+        if not os.path.exists('../output'):
             try:
                 os.makedirs('../output')
             except OSError as e:
