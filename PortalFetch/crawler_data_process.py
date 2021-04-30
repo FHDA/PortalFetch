@@ -28,16 +28,16 @@ class DataProcess:
         soup = BeautifulSoup(html, 'lxml')
         trs = soup.find_all('tr')
         for tr in trs:
-            ui = []
+            rowData = []
             for td in tr:
                 if td == '\n':
                     continue
                 elif td.string:
-                    ui.append(str(td.string))
+                    rowData.append(str(td.string))
                 else:
-                    ui.append(td)
-            if len(ui) == 19:
-                rustCourseList.append(ui[:18])
+                    rowData.append(td)
+            if len(rowData) == 19:
+                rustCourseList.append(rowData[:18])
         return rustCourseList
 
     def __getList(self, courseList, html):
@@ -49,51 +49,50 @@ class DataProcess:
         Parameters: List, String
         Returns: None
         """
-        ui = self.__getRustContents(html)
-        for course in ui:
-            temp = []
+        rustCourseList = self.__getRustContents(html)
+        for course in rustCourseList:
+            courseData = []
             for ele in course:
                 if type(ele) is not str:
                     soup = BeautifulSoup(str(ele), 'lxml')
                     ele = soup.get_text()
-                temp.append((ele))
-            courseList.append(temp)
+                courseData.append((ele))
+            courseList.append(courseData)
 
     def __deputyList(self, courseList):
         """
         Deputy courseList to a json file.
 
         Input: courseList is courses list from __getContents
-        Output : .json file  will include all the courses information
+        Output : .json objects will include all the courses information
         Parameters: List
-        Returns: None
+        Returns: a json object(key: subject, value: an array of courses of this subject)
         """
-        dic = {}
+        coursesData = {}
         title = ['Select', 'CRN', 'Coreq', 'Subj', 'Crse', 'Sec', 'Cmp', 'Cred', 'Title', 'Days', 'Time', 'Act', 'Rem',
                 'WL Rem', 'Instructor', 'Date (MM/DD)', 'Location', 'Attribute', 'lab']
-        for i in range(len(courseList)):
+        for CourseIndex in range(len(courseList)):
             # Create a new subject
-            if courseList[i][0] == 'Select':
-                subj = courseList[i+1][3]
-                d = []
-                dic[subj] = d
+            if courseList[CourseIndex][0] == 'Select':
+                subjectName = courseList[CourseIndex + 1][3]
+                coursesData[subjectName] = []
             else:
                 # deputy one line of course information
-                if courseList[i][0] != '\xa0':
-                    di = {}
-                    self.__deputyCourseLine(title, courseList[i], di)
-                    dic[courseList[i][3]].append(di)
+                if courseList[CourseIndex][0] != '\xa0': #this line is a course
+                    course = {}
+                    self.__deputyCourseLine(title, courseList[CourseIndex], course)
+                    coursesData[courseList[CourseIndex][3]].append(course)
                 # deputy lab information
-                else:
-                    dl = {}
+                else: # this line is a lab
+                    lab = {}
                     # find the subject
-                    j = i - 1
-                    while courseList[j][3] == '\xa0':
-                        j -= 1
-                    subj = courseList[j][3]
-                    self.__deputyLabLine(title, courseList[i], dl)
-                    dic[subj][-1]['lab'].append(dl)
-        return dic
+                    labSubjectIndex = CourseIndex - 1
+                    while courseList[labSubjectIndex][3] == '\xa0':
+                        labSubjectIndex -= 1
+                    subjectName = courseList[labSubjectIndex][3]
+                    self.__deputyLabLine(title, courseList[CourseIndex], lab)
+                    coursesData[subjectName][-1]['lab'].append(lab)
+        return coursesData
 
     def __deputyCourseLine(self, title, oneLine, emptyDiction):
         """
@@ -103,26 +102,26 @@ class DataProcess:
         Parameters: List, List, Dictionary
         Returns: None
         """
-        count = -1
+        titleIndex = -1
         for ele in oneLine:
-            count += 1
-            if count != 2 and count != 3:
-                emptyDiction[title[count]] = ele if ele != '\xa0' else ''
+            titleIndex += 1
+            if titleIndex != 2 and titleIndex != 3:
+                emptyDiction[title[titleIndex]] = ele if ele != '\xa0' else ''
         emptyDiction['lab'] = []
 
     def __deputyLabLine(self, title, labLine, emptyDiction):
         """
         Deputy one line of lab information to the diction.
 
-        Input: title is a list of courses' key words, labLine is a line of course information, emptyDiction is {}
+        Input: title is a list of courses' key words, labLine is a line of lab information, emptyDiction is {}
         Parameters: List, List, Dictionary
         Returns: None
         """
-        count = -1
+        titleIndex = -1
         for ele in labLine:
-            count += 1
+            titleIndex += 1
             if ele != '\xa0':
-                emptyDiction[title[count]] = ele
+                emptyDiction[title[titleIndex]] = ele
 
     def htmlToJson(self, htmlFile, jsonFilename, quarter, fetchTime):
         """
@@ -136,13 +135,13 @@ class DataProcess:
         Parameters: string, string, string, string
         Returns: None
         """
-        courseList = []
-        self.__getList(courseList, htmlFile)
-        d = self.__deputyList(courseList)
+        courseDataList = []
+        self.__getList(courseDataList, htmlFile)
+        CourseDataJson = self.__deputyList(courseDataList)
         output = {}
         output[quarter] = {}
         output[quarter]["FetchTime"] = fetchTime
-        output[quarter]["CourseData"] = d
+        output[quarter]["CourseData"] = CourseDataJson
         if not os.path.exists('../output'):
             try:
                 os.makedirs('../output')
@@ -159,7 +158,7 @@ class DataProcess:
         input:  'html' is the HTML string.
                 'filename' is the name of the saved .json.
                 'quarter' is the quarter of the json file'
-        output: save courses in a file 'filename'.json.
+        output: save 'quarter' courses in a file 'filename'.json with current time stamp.
         Parameters: String, String, String
         Return: None
         """
