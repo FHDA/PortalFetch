@@ -99,7 +99,7 @@ class DataProcess:
         Deputy one line of courseList to the diction.
 
         Input: title is a list of courses' key words, oneLine is a line of course information, emptyDiction is {}
-        Parameters: List, List, Dictionary
+        Parameters: List, List, Dictionary(key: titles for courses(select, crn, crse...), values: data from webpage)
         Returns: None
         """
         titleIndex = -1
@@ -114,7 +114,7 @@ class DataProcess:
         Deputy one line of lab information to the diction.
 
         Input: title is a list of courses' key words, labLine is a line of lab information, emptyDiction is {}
-        Parameters: List, List, Dictionary
+        Parameters: List, List, Dictionary(key: titles for lab(time, instructor, date...), values: data from webpage)
         Returns: None
         """
         titleIndex = -1
