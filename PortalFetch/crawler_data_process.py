@@ -1,68 +1,166 @@
 #!/usr/bin/env python
-"""Process html course information to save in a .csv file.
+"""Process html course information to save in a .json file.
 
 It requires file 'user.ini' to load the user's own user name and password.
 """
 from bs4 import BeautifulSoup
-import csv
-import logging
+import json
+import time
+import os
 
 
 class DataProcess:
-    """Deputy HTML text to save in a .csv file."""
+    """Deputy .html file to .json file.
 
-    def __get_contents(self, ulist, text):
+    It needs to import an .html file from De Anza courses information website.
+    """
+
+    def __getRustContents(self, html):
         """
-        Get result contents from html.
+        Get rust list contents from html.
 
-        Input: text is html of the courses, ulist is an empty list []
-        Output : ulist will include all the courses list in text
+        Input: html is html of the courses
+        Output : courseList will include all the courses list in text and some other contents
+        Parameters: String
+        Returns: List
+        """
+        rustCourseList = []
+        soup = BeautifulSoup(html, 'lxml')
+        trs = soup.find_all('tr')
+        for tr in trs:
+            rowData = []
+            for td in tr:
+                if td == '\n':
+                    continue
+                elif td.string:
+                    rowData.append(str(td.string))
+                else:
+                    rowData.append(td)
+            if len(rowData) == 19:
+                rustCourseList.append(rowData[:18])
+        return rustCourseList
+
+    def __getList(self, courseList, html):
+        """
+        Get course list from html.
+
+        Input: html is html of the courses, courseList is an empty list []
+        Output : courseList will include all the courses list in text
         Parameters: List, String
         Returns: None
         """
-        soup = BeautifulSoup(text, 'lxml')
-        trs = soup.find_all('tr')
-        for tr in trs:
-            ui = []
-            for td in tr:
-                ui.append(td.string)
-            ulist.append(ui)
+        rustCourseList = self.__getRustContents(html)
+        for course in rustCourseList:
+            courseData = []
+            for ele in course:
+                if type(ele) is not str:
+                    soup = BeautifulSoup(str(ele), 'lxml')
+                    ele = soup.get_text()
+                courseData.append((ele))
+            courseList.append(courseData)
 
-    def __save_contents(self, filename, firstline, urlist):
+    def __deputyList(self, courseList):
         """
-        Save course result to a .csv file.
+        Deputy courseList to a json file.
 
-        input : urlist is the courses list we get from get_contents
-        output : save courses in a file "DeAnza2020spring.csv"
+        Input: courseList is courses list from __getContents
+        Output : .json objects will include all the courses information
+        Parameters: List
+        Returns: a json object(key: subject, value: an array of courses of this subject)
+        """
+        coursesData = {}
+        title = ['Select', 'CRN', 'Coreq', 'Subj', 'Crse', 'Sec', 'Cmp', 'Cred', 'Title', 'Days', 'Time', 'Act', 'Rem',
+                'WL Rem', 'Instructor', 'Date (MM/DD)', 'Location', 'Attribute', 'lab']
+        for CourseIndex in range(len(courseList)):
+            # Create a new subject
+            if courseList[CourseIndex][0] == 'Select':
+                subjectName = courseList[CourseIndex + 1][3]
+                coursesData[subjectName] = []
+            else:
+                # deputy one line of course information
+                if courseList[CourseIndex][0] != '\xa0': #this line is a course
+                    course = {}
+                    self.__deputyCourseLine(title, courseList[CourseIndex], course)
+                    coursesData[courseList[CourseIndex][3]].append(course)
+                # deputy lab information
+                else: # this line is a lab
+                    lab = {}
+                    # find the subject
+                    labSubjectIndex = CourseIndex - 1
+                    while courseList[labSubjectIndex][3] == '\xa0':
+                        labSubjectIndex -= 1
+                    subjectName = courseList[labSubjectIndex][3]
+                    self.__deputyLabLine(title, courseList[CourseIndex], lab)
+                    coursesData[subjectName][-1]['lab'].append(lab)
+        return coursesData
 
-        Parameters: String, String, List
+    def __deputyCourseLine(self, title, oneLine, emptyDiction):
+        """
+        Deputy one line of courseList to the diction.
+
+        Input: title is a list of courses' key words, oneLine is a line of course information, emptyDiction is {}
+        Parameters: List, List, Dictionary(key: titles for courses(select, crn, crse...), values: data from webpage)
         Returns: None
         """
-        with open(filename, 'w', encoding='utf-8', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([firstline])
+        titleIndex = -1
+        for ele in oneLine:
+            titleIndex += 1
+            if titleIndex != 2 and titleIndex != 3:
+                emptyDiction[title[titleIndex]] = ele if ele != '\xa0' else ''
+        emptyDiction['lab'] = []
 
-            for i in range(8, len(urlist)-1):
-                if len(urlist[i]) >= 35:
-                    writer.writerow([urlist[i][1], urlist[i][3], urlist[i][5],urlist[i][7], urlist[i][9], urlist[i][11],
-                                urlist[i][13], urlist[i][15], urlist[i][17],urlist[i][19], urlist[i][21], urlist[i][23],
-                                urlist[i][25], urlist[i][27], urlist[i][29],urlist[i][31], urlist[i][33], urlist[i][35]]
-                                )
-                else:
-                    writer.writerow(urlist[i])
-        logging.info("Download Finished!")
-
-    def data_process(self, text, filename, firstline):
+    def __deputyLabLine(self, title, labLine, emptyDiction):
         """
-        Deputy HTML text to save in a .csv file.
+        Deputy one line of lab information to the diction.
 
-        input:  'text' is the H TML string.
-                'filename' is the name of the saved .csv.
-                'firstline' is the first line of the .csv.
-        output: save courses in a file 'filename'.csv.
+        Input: title is a list of courses' key words, labLine is a line of lab information, emptyDiction is {}
+        Parameters: List, List, Dictionary(key: titles for lab(time, instructor, date...), values: data from webpage)
+        Returns: None
+        """
+        titleIndex = -1
+        for ele in labLine:
+            titleIndex += 1
+            if ele != '\xa0':
+                emptyDiction[title[titleIndex]] = ele
+
+    def htmlToJson(self, htmlFile, jsonFilename, quarter, fetchTime):
+        """
+        Deputy htmlFile to a json file.
+
+        Input:  htmlFile is a .html file got from __deputyList,
+                jsonFilename is .json file name you want to give for the output
+                quarter is the name of the course quarter.
+                fetchTime is the fetch time of crawler
+        Output : .json file  will include all the courses information
+        Parameters: string, string, string, string
+        Returns: None
+        """
+        courseDataList = []
+        self.__getList(courseDataList, htmlFile)
+        CourseDataJson = self.__deputyList(courseDataList)
+        output = {}
+        output[quarter] = {}
+        output[quarter]["FetchTime"] = fetchTime
+        output[quarter]["CourseData"] = CourseDataJson
+        if not os.path.exists('../output'):
+            try:
+                os.makedirs('../output')
+            except OSError as e:
+                logger.error("Unable to create output directory: %s", e)
+
+        with open('../output/' + jsonFilename, 'w') as outfile:
+            json.dump(output, outfile, indent=4)
+
+    def data_process(self, html, filename, quarter):
+        """
+        Deputy HTML text to save in a .json file.
+
+        input:  'html' is the HTML string.
+                'filename' is the name of the saved .json.
+                'quarter' is the quarter of the json file'
+        output: save 'quarter' courses in a file 'filename'.json with current time stamp.
         Parameters: String, String, String
         Return: None
         """
-        courseList = []
-        self.__get_contents(courseList, text)  # Extract course information from html
-        self.__save_contents(filename, firstline, courseList)  # Save course information as a csv file
+        self.htmlToJson(html, filename, quarter, int(time.time()))
+

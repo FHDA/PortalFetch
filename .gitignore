@@ -297,3 +297,9 @@ package-lock.json
 
 # ----------------- VSCODE----------------- #
 .vscode/*
+
+# virtual environment
+env
+
+# cofig file(account info and csv filename)
+crawler.config

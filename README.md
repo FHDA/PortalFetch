@@ -115,9 +115,9 @@ Reference:
 ## crawler.config format  
  
     [config]    
-    quarter_value  = <quarter_value to be selected>  
-    filename  = <filename>.csv  
-    title  = <title of the csv file>  
+    quarter_value  = <quarter_value to be selected, which is the value attribute of option tag in webpage>  
+    filename  = <filename>.json 
+    quarter  = <quarter of the year,e.g. Summer2021>  
        
     [campus]  
     username = <FHDA MyPortal username>
