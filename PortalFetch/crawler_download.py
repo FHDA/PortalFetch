@@ -212,7 +212,7 @@ def generateFilenameAndQuarter(quarterValue):
     Args:
         quarterValue:the quarter_value in crawler.config
     Returns:
-        quarter str and fileName str
+        list of quarter str and fileName str
 
     """
     year = quarterValue[0:4]
@@ -229,12 +229,14 @@ def generateFilenameAndQuarter(quarterValue):
     }
     school = schoolSwitcher.get(quarterValue[5], "")
     quarter = quarterSwitcher.get(quarterValue[4], "")
-    qr = year + " " + quarter + " " + school
-    resultList.append(qr)
+    if quarter == "Summer":
+        year = str(int(year)-1)
+    quarterOutput = year + " " + quarter + " " + school
+    resultList.append(quarterOutput)
     if school == "De Anza":
         school = "De_Anza"
-    fn = year + "_" + quarter + "_" + school + "_courseData.json"
-    resultList.append(fn)
+    fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
+    resultList.append(fileNameOutput)
     return resultList
 
 
@@ -278,9 +280,10 @@ def main():
         fillAdvanceSearch(driver)
         # Save searched courses
         html = saveResult(driver)
-        # get Quarter and fileName based On quarter_value in crawler.config
-        filename = generateFilenameAndQuarter(value)[1]
-        quarter = generateFilenameAndQuarter(value)[0]
+        # get quarter and fileName based On quarter_value in crawler.config
+        resultList = generateFilenameAndQuarter(value)
+        filename = resultList[1]
+        quarter = resultList[0]
 
         DataProcess().data_process(html, filename, quarter)
         logging.info("Download Finished!")
