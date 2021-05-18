@@ -18,16 +18,18 @@ from selenium.common.exceptions import ElementNotVisibleException
 from crawler_data_process import DataProcess
 from webdriver_manager.chrome import ChromeDriverManager
 
-logging.basicConfig(filename = '../log/' + 
-                str(datetime.datetime.now()).replace(' ', '_').replace(':', '')[:17] + '_crawler.log', 
-                level=logging.INFO, 
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='../log/' +
+                    str(datetime.datetime.now()).replace(
+                        ' ', '_').replace(':', '')[:17] + '_crawler.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 parser = ConfigParser()
 parser.read('crawler.config')
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
+
 
 def locateButton(driver, button):
     """Search a specific button and click it if found.
@@ -130,7 +132,6 @@ def findAppsMenu(driver):
             appMenu.click()
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
-    
 
 
 def lookUpClasses(driver):
@@ -186,6 +187,7 @@ def saveResult(driver):
     html = driver.page_source
     return html
 
+
 def waitUtilPageLoaded(driver, count):
     """Wait until page loaded.
 
@@ -202,6 +204,38 @@ def waitUtilPageLoaded(driver, count):
         if driver.find_element_by_class_name("banner_copyright"):
             return
     raise ElementNotVisibleException("Could not load the full page!")
+
+
+def generateFilenameAndQuarter(quarterValue):
+    """Return quarter and fileName.
+
+    Args:
+        quarterValue:the quarter_value in crawler.config
+    Returns:
+        quarter str and fileName str
+
+    """
+    year = quarterValue[0:4]
+    resultList = []
+    quarterSwitcher = {
+        "1": "Summer",
+        "2": "Fall",
+        "3": "Winter",
+        "4": "Spring",
+    }
+    schoolSwitcher = {
+        "1": "Foothill",
+        "2": "De Anza",
+    }
+    school = schoolSwitcher.get(quarterValue[5], "")
+    quarter = quarterSwitcher.get(quarterValue[4], "")
+    qr = year + " " + quarter + " " + school
+    resultList.append(qr)
+    if school == "De Anza":
+        school = "De_Anza"
+    fn = year + "_" + quarter + "_" + school + "_courseData.json"
+    resultList.append(fn)
+    return resultList
 
 
 def main():
@@ -227,12 +261,12 @@ def main():
         raise NoSuchElementException("Could not find list-group item!")
 
     try:
-    	# Course search page from homepage after login
+        # Course search page from homepage after login
         openSearchPage(driver)
         selectelement = driver.find_element_by_tag_name("select")
         # Select specified course
         quarter_downlist = Select(selectelement)
-        value = parser.get('config','quarter_value')
+        value = parser.get('config', 'quarter_value')
         quarter_downlist.select_by_value(value)
         # click 'Submit' button
         locateButton(driver, "submit")
@@ -244,8 +278,10 @@ def main():
         fillAdvanceSearch(driver)
         # Save searched courses
         html = saveResult(driver)
-        filename = parser.get('config', 'filename')
-        quarter = parser.get('config', 'quarter')
+        # get Quarter and fileName based On quarter_value in crawler.config
+        filename = generateFilenameAndQuarter(value)[1]
+        quarter = generateFilenameAndQuarter(value)[0]
+
         DataProcess().data_process(html, filename, quarter)
         logging.info("Download Finished!")
     except Exception as e:
