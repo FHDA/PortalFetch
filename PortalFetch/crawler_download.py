@@ -206,17 +206,16 @@ def waitUtilPageLoaded(driver, count):
     raise ElementNotVisibleException("Could not load the full page!")
 
 
-def generateFilenameAndQuarter(quarterValue):
-    """Return quarter and fileName.
+def generateQuarterAndFilename(quarterValue):
+    """Return quarter and filename.
 
     Args:
         quarterValue:the quarter_value in crawler.config
     Returns:
-        list of quarter str and fileName str
+        quarter str and filename str
 
     """
     year = quarterValue[0:4]
-    resultList = []
     quarterSwitcher = {
         "1": "Summer",
         "2": "Fall",
@@ -232,12 +231,10 @@ def generateFilenameAndQuarter(quarterValue):
     if quarter == "Summer":
         year = str(int(year)-1)
     quarterOutput = year + " " + quarter + " " + school
-    resultList.append(quarterOutput)
     if school == "De Anza":
         school = "De_Anza"
     fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
-    resultList.append(fileNameOutput)
-    return resultList
+    return quarterOutput, fileNameOutput
 
 
 def main():
@@ -280,10 +277,8 @@ def main():
         fillAdvanceSearch(driver)
         # Save searched courses
         html = saveResult(driver)
-        # get quarter and fileName based On quarter_value in crawler.config
-        resultList = generateFilenameAndQuarter(value)
-        filename = resultList[1]
-        quarter = resultList[0]
+        # get quarter and filename based on quarter_value in crawler.config
+        quarter, filename = generateQuarterAndFilename(value)
 
         DataProcess().data_process(html, filename, quarter)
         logging.info("Download Finished!")
