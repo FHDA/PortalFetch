@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Fetch course information from De Anza myportal.
 
 It requires file 'user.ini' to load the user's own user name and password.
@@ -206,34 +207,42 @@ def waitUtilPageLoaded(driver, count):
     raise ElementNotVisibleException("Could not load the full page!")
 
 
-def generateQuarterAndFilename(quarterValue):
+def generateQuarterAndFilename(quarterValueStr):
     """Return quarter and filename.
 
     Args:
         quarterValue:the quarter_value in crawler.config
     Returns:
-        quarter str and filename str
+        quarter str list and filename str list
 
     """
-    year = quarterValue[0:4]
-    quarterSwitcher = {
-        "1": "Summer",
-        "2": "Fall",
-        "3": "Winter",
-        "4": "Spring",
-    }
-    schoolSwitcher = {
-        "1": "Foothill",
-        "2": "De Anza",
-    }
-    school = schoolSwitcher.get(quarterValue[5], "")
-    quarter = quarterSwitcher.get(quarterValue[4], "")
-    if quarter == "Summer":
-        year = str(int(year)-1)
-    quarterOutput = year + " " + quarter + " " + school
-    if school == "De Anza":
-        school = "De_Anza"
-    fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
+    n = 6
+    quarterValueList = [quarterValueStr[i:i+n] for i in range(0, len(quarterValueStr), n)]
+    fileNameOutput = []
+    quarterOutput = []
+    for quarterValue in quarterValueList:
+        year = quarterValue[0:4]
+        quarterSwitcher = {
+            "1": "Summer",
+            "2": "Fall",
+            "3": "Winter",
+            "4": "Spring",
+        }
+        schoolSwitcher = {
+            "1": "Foothill",
+            "2": "De Anza",
+        }
+        school = schoolSwitcher.get(quarterValue[5], "")
+        quarter = quarterSwitcher.get(quarterValue[4], "")
+        if quarter == "Summer":
+            year = str(int(year)-1)
+
+        quarterOutput.append(year + " " + quarter + " " + school)
+        if school == "De Anza":
+            school = "De_Anza"
+
+        fileNameOutput.append(year + "_" + quarter + "_" + school + "_courseData.json")
+
     return quarterOutput, fileNameOutput
 
 
@@ -278,9 +287,10 @@ def main():
         # Save searched courses
         html = saveResult(driver)
         # get quarter and filename based on quarter_value in crawler.config
-        quarter, filename = generateQuarterAndFilename(value)
+        quarter_list, filename_list = generateQuarterAndFilename(value)
+        for i in range(0, len(filename_list)):
+            DataProcess().data_process(html, filename_list[i], quarter_list[i])
 
-        DataProcess().data_process(html, filename, quarter)
         logging.info("Download Finished!")
     except Exception as e:
         logger.error(repr(e))
