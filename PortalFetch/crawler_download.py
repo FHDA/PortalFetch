@@ -216,8 +216,8 @@ def generateQuarterAndFilename(quarterValueStr):
         quarter str list and filename str list
 
     """
-    n = 6
-    quarterValueList = [quarterValueStr[i:i+n] for i in range(0, len(quarterValueStr), n)]
+    singleQuarterValueLength = 6
+    quarterValueList = [quarterValueStr[i:i+n] for i in range(0, len(quarterValueStr), singleQuarterValueLength)]
     fileNameOutput = []
     quarterOutput = []
     for quarterValue in quarterValueList:
@@ -232,8 +232,13 @@ def generateQuarterAndFilename(quarterValueStr):
             "1": "Foothill",
             "2": "De Anza",
         }
+        
+        # the number in index 5 indicates foothill: 1 or De Anza: 2
         school = schoolSwitcher.get(quarterValue[5], "")
+
+        # the number in index 4 indicates quarter starts from 1(summer) to 4(Spring)
         quarter = quarterSwitcher.get(quarterValue[4], "")
+
         if quarter == "Summer":
             year = str(int(year)-1)
 
@@ -288,7 +293,7 @@ def main():
         html = saveResult(driver)
         # get quarter and filename based on quarter_value in crawler.config
         quarter_list, filename_list = generateQuarterAndFilename(value)
-        for i in range(0, len(filename_list)):
+        for i in range(len(filename_list)):
             DataProcess().data_process(html, filename_list[i], quarter_list[i])
 
         logging.info("Download Finished!")
