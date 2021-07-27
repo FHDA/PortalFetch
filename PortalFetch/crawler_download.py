@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Fetch course information from De Anza myportal.
 
 It requires file 'user.ini' to load the user's own user name and password.
@@ -111,6 +110,7 @@ def openSearchPage(driver):
             driver.switch_to.window(name)
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
+    
 
 
 def findAppsMenu(driver):
@@ -207,47 +207,34 @@ def waitUtilPageLoaded(driver, count):
     raise ElementNotVisibleException("Could not load the full page!")
 
 
-def generateQuarterAndFilename(quarterValueStr):
+def generateQuarterAndFilename(quarterValue):
     """Return quarter and filename.
 
     Args:
         quarterValue:the quarter_value in crawler.config
     Returns:
-        quarter str list and filename str list
+        quarter str and filename str
 
     """
-    singleQuarterValueLength = 6
-    quarterValueList = [quarterValueStr[i:i+n] for i in range(0, len(quarterValueStr), singleQuarterValueLength)]
-    fileNameOutput = []
-    quarterOutput = []
-    for quarterValue in quarterValueList:
-        year = quarterValue[0:4]
-        quarterSwitcher = {
-            "1": "Summer",
-            "2": "Fall",
-            "3": "Winter",
-            "4": "Spring",
-        }
-        schoolSwitcher = {
-            "1": "Foothill",
-            "2": "De Anza",
-        }
-        
-        # the number in index 5 indicates foothill: 1 or De Anza: 2
-        school = schoolSwitcher.get(quarterValue[5], "")
-
-        # the number in index 4 indicates quarter starts from 1(summer) to 4(Spring)
-        quarter = quarterSwitcher.get(quarterValue[4], "")
-
-        if quarter == "Summer":
-            year = str(int(year)-1)
-
-        quarterOutput.append(year + " " + quarter + " " + school)
-        if school == "De Anza":
-            school = "De_Anza"
-
-        fileNameOutput.append(year + "_" + quarter + "_" + school + "_courseData.json")
-
+    year = quarterValue[0:4]
+    quarterSwitcher = {
+        "1": "Summer",
+        "2": "Fall",
+        "3": "Winter",
+        "4": "Spring",
+    }
+    schoolSwitcher = {
+        "1": "Foothill",
+        "2": "De Anza",
+    }
+    school = schoolSwitcher.get(quarterValue[5], "")
+    quarter = quarterSwitcher.get(quarterValue[4], "")
+    if quarter == "Summer":
+        year = str(int(year)-1)
+    quarterOutput = year + " " + quarter + " " + school
+    if school == "De Anza":
+        school = "De_Anza"
+    fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
     return quarterOutput, fileNameOutput
 
 
@@ -257,50 +244,47 @@ def main():
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    login_myportal(driver)
-
-    # Wait for the 'list-group-item' can be found and clicked
-    web_driver_counter = 400
-    list_group_item = None
-    while web_driver_counter:
+    quartervalue = parser.get('config', 'quarter_value')
+    quartervalueList = quartervalue.split('_')
+    for value in quartervalueList:
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        login_myportal(driver)
+        # Wait for the 'list-group-item' can be found and clicked
+        web_driver_counter = 400
+        list_group_item = None
+        while web_driver_counter:
+            try:
+                list_group_item = driver.find_element_by_class_name("list-group-item")
+            except:
+                pass
+            web_driver_counter -= 1
+        if not list_group_item:
+            logger.error("Could not find list-group item!")
+            raise NoSuchElementException("Could not find list-group item!")
         try:
-            list_group_item = driver.find_element_by_class_name("list-group-item")
-        except:
-            pass
-        web_driver_counter -= 1
-    if not list_group_item:
-        logger.error("Could not find list-group item!")
-        raise NoSuchElementException("Could not find list-group item!")
-
-    try:
-        # Course search page from homepage after login
-        openSearchPage(driver)
-        selectelement = driver.find_element_by_tag_name("select")
-        # Select specified course
-        quarter_downlist = Select(selectelement)
-        value = parser.get('config', 'quarter_value')
-        quarter_downlist.select_by_value(value)
-        # click 'Submit' button
-        locateButton(driver, "submit")
-        # click 'Advance Search' button
-        locateButton(driver, "advance")
-        # Wait while the page is loading
-        waitUtilPageLoaded(driver, 30)
-        # Go to the advanced options page and start filling in various search terms
-        fillAdvanceSearch(driver)
-        # Save searched courses
-        html = saveResult(driver)
-        # get quarter and filename based on quarter_value in crawler.config
-        quarter_list, filename_list = generateQuarterAndFilename(value)
-        for i in range(len(filename_list)):
-            DataProcess().data_process(html, filename_list[i], quarter_list[i])
-
-        logging.info("Download Finished!")
-    except Exception as e:
-        logger.error(repr(e))
-        sys.exit(-1)
-
-
+            # Course search page from homepage after login
+            openSearchPage(driver)
+            selectelement = driver.find_element_by_tag_name("select")
+            # Select specified course
+            quarter_downlist = Select(selectelement)
+            quarter_downlist.select_by_value(value)
+            # click 'Submit' button
+            locateButton(driver, "submit")
+            # click 'Advance Search' button
+            locateButton(driver, "advance")
+            # Wait while the page is loading
+            waitUtilPageLoaded(driver, 30)
+            # Go to the advanced options page and start filling in various search terms
+            fillAdvanceSearch(driver)
+            # Save searched courses
+            html = saveResult(driver)
+            # get quarter and filename based on quarter_value in crawler.config
+            quarter, filename = generateQuarterAndFilename(value)
+            DataProcess().data_process(html, filename, quarter)
+            logging.info("Download Finished!")
+        except Exception as e:
+            logger.error(repr(e))
+            sys.exit(-1)
+        
 if __name__ == "__main__":
     main()
