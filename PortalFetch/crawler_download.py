@@ -30,7 +30,6 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
-
 def locateButton(driver, button):
     """Search a specific button and click it if found.
 
@@ -59,7 +58,6 @@ def locateButton(driver, button):
                 return
     raise NoSuchElementException(button + " element is not found!")
 
-
 def login_myportal(driver):
     """Open myportal website and login.
 
@@ -83,7 +81,6 @@ def login_myportal(driver):
         logger.info("Log in finished.")
     except:
         raise KeyError("Login failed, please check input username/password!")
-
 
 def openSearchPage(driver):
     """Click 'Apps'->'Look Up Classes' and open search page.
@@ -111,7 +108,6 @@ def openSearchPage(driver):
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
 
-
 def findAppsMenu(driver):
     """Find Apps menu.
 
@@ -133,7 +129,6 @@ def findAppsMenu(driver):
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
 
-
 def lookUpClasses(driver):
     """Find app list.
 
@@ -154,7 +149,6 @@ def lookUpClasses(driver):
             return classes
     raise NoSuchElementException("No Look Up Classes feature found in the app list!")
 
-
 def fillAdvanceSearch(driver):
     """Go to the advanced options page and select all options in Subject list.
 
@@ -173,7 +167,6 @@ def fillAdvanceSearch(driver):
         subjectListSelect.select_by_index(i)
     locateButton(driver, "section")
 
-
 def saveResult(driver):
     """Save the results of courses to a html.
 
@@ -186,7 +179,6 @@ def saveResult(driver):
     waitUtilPageLoaded(driver, 30)
     html = driver.page_source
     return html
-
 
 def waitUtilPageLoaded(driver, count):
     """Wait until page loaded.
@@ -204,7 +196,6 @@ def waitUtilPageLoaded(driver, count):
         if driver.find_element_by_class_name("banner_copyright"):
             return
     raise ElementNotVisibleException("Could not load the full page!")
-
 
 def generateQuarterAndFilename(quarterValue):
     """Return quarter and filename.
@@ -235,7 +226,6 @@ def generateQuarterAndFilename(quarterValue):
         school = "De_Anza"
     fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
     return quarterOutput, fileNameOutput
-
 
 def main():
     """Download course information from De Anza myportal.
@@ -284,7 +274,6 @@ def main():
         except Exception as e:
             logger.error(repr(e))
             sys.exit(-1)
-
 
 if __name__ == "__main__":
     main()
