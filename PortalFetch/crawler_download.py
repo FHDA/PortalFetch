@@ -110,7 +110,6 @@ def openSearchPage(driver):
             driver.switch_to.window(name)
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
-    
 
 
 def findAppsMenu(driver):
@@ -285,6 +284,7 @@ def main():
         except Exception as e:
             logger.error(repr(e))
             sys.exit(-1)
-        
+
+
 if __name__ == "__main__":
     main()
