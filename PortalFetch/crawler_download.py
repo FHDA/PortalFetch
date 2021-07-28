@@ -30,7 +30,6 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
-
 def locateButton(driver, button):
     """Search a specific button and click it if found.
 
@@ -59,7 +58,6 @@ def locateButton(driver, button):
                 return
     raise NoSuchElementException(button + " element is not found!")
 
-
 def login_myportal(driver):
     """Open myportal website and login.
 
@@ -83,7 +81,6 @@ def login_myportal(driver):
         logger.info("Log in finished.")
     except:
         raise KeyError("Login failed, please check input username/password!")
-
 
 def openSearchPage(driver):
     """Click 'Apps'->'Look Up Classes' and open search page.
@@ -111,7 +108,6 @@ def openSearchPage(driver):
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
 
-
 def findAppsMenu(driver):
     """Find Apps menu.
 
@@ -133,7 +129,6 @@ def findAppsMenu(driver):
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
 
-
 def lookUpClasses(driver):
     """Find app list.
 
@@ -154,7 +149,6 @@ def lookUpClasses(driver):
             return classes
     raise NoSuchElementException("No Look Up Classes feature found in the app list!")
 
-
 def fillAdvanceSearch(driver):
     """Go to the advanced options page and select all options in Subject list.
 
@@ -173,7 +167,6 @@ def fillAdvanceSearch(driver):
         subjectListSelect.select_by_index(i)
     locateButton(driver, "section")
 
-
 def saveResult(driver):
     """Save the results of courses to a html.
 
@@ -186,7 +179,6 @@ def saveResult(driver):
     waitUtilPageLoaded(driver, 30)
     html = driver.page_source
     return html
-
 
 def waitUtilPageLoaded(driver, count):
     """Wait until page loaded.
@@ -204,7 +196,6 @@ def waitUtilPageLoaded(driver, count):
         if driver.find_element_by_class_name("banner_copyright"):
             return
     raise ElementNotVisibleException("Could not load the full page!")
-
 
 def generateQuarterAndFilename(quarterValue):
     """Return quarter and filename.
@@ -236,56 +227,53 @@ def generateQuarterAndFilename(quarterValue):
     fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
     return quarterOutput, fileNameOutput
 
-
 def main():
     """Download course information from De Anza myportal.
 
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    login_myportal(driver)
-
-    # Wait for the 'list-group-item' can be found and clicked
-    web_driver_counter = 400
-    list_group_item = None
-    while web_driver_counter:
+    quartervalue = parser.get('config', 'quarter_value')
+    quartervalueList = quartervalue.split('_')
+    for value in quartervalueList:
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        login_myportal(driver)
+        # Wait for the 'list-group-item' can be found and clicked
+        web_driver_counter = 400
+        list_group_item = None
+        while web_driver_counter:
+            try:
+                list_group_item = driver.find_element_by_class_name("list-group-item")
+            except:
+                pass
+            web_driver_counter -= 1
+        if not list_group_item:
+            logger.error("Could not find list-group item!")
+            raise NoSuchElementException("Could not find list-group item!")
         try:
-            list_group_item = driver.find_element_by_class_name("list-group-item")
-        except:
-            pass
-        web_driver_counter -= 1
-    if not list_group_item:
-        logger.error("Could not find list-group item!")
-        raise NoSuchElementException("Could not find list-group item!")
-
-    try:
-        # Course search page from homepage after login
-        openSearchPage(driver)
-        selectelement = driver.find_element_by_tag_name("select")
-        # Select specified course
-        quarter_downlist = Select(selectelement)
-        value = parser.get('config', 'quarter_value')
-        quarter_downlist.select_by_value(value)
-        # click 'Submit' button
-        locateButton(driver, "submit")
-        # click 'Advance Search' button
-        locateButton(driver, "advance")
-        # Wait while the page is loading
-        waitUtilPageLoaded(driver, 30)
-        # Go to the advanced options page and start filling in various search terms
-        fillAdvanceSearch(driver)
-        # Save searched courses
-        html = saveResult(driver)
-        # get quarter and filename based on quarter_value in crawler.config
-        quarter, filename = generateQuarterAndFilename(value)
-
-        DataProcess().data_process(html, filename, quarter)
-        logging.info("Download Finished!")
-    except Exception as e:
-        logger.error(repr(e))
-        sys.exit(-1)
-
+            # Course search page from homepage after login
+            openSearchPage(driver)
+            selectelement = driver.find_element_by_tag_name("select")
+            # Select specified course
+            quarter_downlist = Select(selectelement)
+            quarter_downlist.select_by_value(value)
+            # click 'Submit' button
+            locateButton(driver, "submit")
+            # click 'Advance Search' button
+            locateButton(driver, "advance")
+            # Wait while the page is loading
+            waitUtilPageLoaded(driver, 30)
+            # Go to the advanced options page and start filling in various search terms
+            fillAdvanceSearch(driver)
+            # Save searched courses
+            html = saveResult(driver)
+            # get quarter and filename based on quarter_value in crawler.config
+            quarter, filename = generateQuarterAndFilename(value)
+            DataProcess().data_process(html, filename, quarter)
+            logging.info("Download Finished!")
+        except Exception as e:
+            logger.error(repr(e))
+            sys.exit(-1)
 
 if __name__ == "__main__":
     main()
