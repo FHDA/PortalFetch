@@ -115,7 +115,7 @@ Reference:
 ## crawler.config format  
  
     [config]    
-    quarter_value  = <quarter_value to be selected, which is the value attribute of option tag in webpage>  
+    quarter_value  = < mutiple quarter_value to be selected, which is the value attribute of option tag in webpage, use ',' to split each quarter_value>  
     filename  = <filename>.json 
     quarter  = <quarter of the year,e.g. Summer2021>  
        

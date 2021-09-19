@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Fetch course information from De Anza myportal.
-
 It requires file 'user.ini' to load the user's own user name and password.
 """
 import sys
@@ -30,10 +29,8 @@ options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
 
-
 def locateButton(driver, button):
     """Search a specific button and click it if found.
-
     Args:
         driver: the webdriver object of this class
         button: the intended button for search
@@ -41,7 +38,6 @@ def locateButton(driver, button):
         NoSuchElementException: The button is not found
     Returns:
         None
-
     """
     inputs = driver.find_elements_by_tag_name("input")
     result = None
@@ -59,17 +55,14 @@ def locateButton(driver, button):
                 return
     raise NoSuchElementException(button + " element is not found!")
 
-
 def login_myportal(driver):
     """Open myportal website and login.
-
     Args:
         driver: the webdriver object of this class
     Raises:
         KeyError: Login is failed with given information
     Returns:
         None
-
     """
     # Open MyPortal Browser
     driver.get("https://myportal.fhda.edu/")
@@ -84,16 +77,13 @@ def login_myportal(driver):
     except:
         raise KeyError("Login failed, please check input username/password!")
 
-
 def openSearchPage(driver):
     """Click 'Apps'->'Look Up Classes' and open search page.
-
     Args:
         driver: the webdriver object of this class
         button: the intended button for search
     Returns:
         None
-
     """
     # Find the Apps menu and click
     findAppsMenu(driver)
@@ -111,17 +101,14 @@ def openSearchPage(driver):
     # Waiting for elements in the page to appear, indicating that the page has finished loading
     waitUtilPageLoaded(driver, 30)
 
-
 def findAppsMenu(driver):
     """Find Apps menu.
-
     Args:
         driver: the webdriver object of this class
     Raises:
         NoSuchElementException: The app menu is not found
     Returns:
         None
-
     """
     menus = driver.find_elements_by_class_name("list-group-item")
     appMenu = []
@@ -133,17 +120,14 @@ def findAppsMenu(driver):
     if not appMenu:
         raise NoSuchElementException("Apps menu is not found!")
 
-
 def lookUpClasses(driver):
     """Find app list.
-
     Args:
         driver: the webdriver object of this class
     Raises:
         NoSuchElementException: The app menu is not found
     Returns:
         classes: the list of found classes
-
     """
     myappsclasses = driver.find_elements_by_class_name("myapps-item")
     classes = []
@@ -154,15 +138,12 @@ def lookUpClasses(driver):
             return classes
     raise NoSuchElementException("No Look Up Classes feature found in the app list!")
 
-
 def fillAdvanceSearch(driver):
     """Go to the advanced options page and select all options in Subject list.
-
     Args:
         driver: the webdriver object of this class
     Returns:
         None
-
     """
     # Select all options in Subject list
     subjectList = driver.find_element_by_id("subj_id")  # web element
@@ -173,31 +154,25 @@ def fillAdvanceSearch(driver):
         subjectListSelect.select_by_index(i)
     locateButton(driver, "section")
 
-
 def saveResult(driver):
     """Save the results of courses to a html.
-
     Args:
         driver: the webdriver object of this class
     Returns:
         html: the html of result page source
-
     """
     waitUtilPageLoaded(driver, 30)
     html = driver.page_source
     return html
 
-
 def waitUtilPageLoaded(driver, count):
     """Wait until page loaded.
-
     Args:
         driver: the webdriver object of this class
     Raises:
         ElementNotVisibleException: Could not load full page in given count-down
     Returns:
         None
-
     """
     while count:
         count -= 1
@@ -205,15 +180,12 @@ def waitUtilPageLoaded(driver, count):
             return
     raise ElementNotVisibleException("Could not load the full page!")
 
-
 def generateQuarterAndFilename(quarterValue):
     """Return quarter and filename.
-
     Args:
         quarterValue:the quarter_value in crawler.config
     Returns:
         quarter str and filename str
-
     """
     year = quarterValue[0:4]
     quarterSwitcher = {
@@ -228,6 +200,7 @@ def generateQuarterAndFilename(quarterValue):
     }
     school = schoolSwitcher.get(quarterValue[5], "")
     quarter = quarterSwitcher.get(quarterValue[4], "")
+    # The quarter value starts at summer which is 1, and 4 is Spring
     if quarter == "Summer":
         year = str(int(year)-1)
     quarterOutput = year + " " + quarter + " " + school
@@ -236,56 +209,52 @@ def generateQuarterAndFilename(quarterValue):
     fileNameOutput = year + "_" + quarter + "_" + school + "_courseData.json"
     return quarterOutput, fileNameOutput
 
-
 def main():
     """Download course information from De Anza myportal.
-
     Login in De Anza myportal using username and password.
     click Apps-Lookup Classes-Select by term -submit-Advanced Search-in Subject, select all-Section search-Download all the course infromation-Save in an excel
     """
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    login_myportal(driver)
-
-    # Wait for the 'list-group-item' can be found and clicked
-    web_driver_counter = 400
-    list_group_item = None
-    while web_driver_counter:
+    quartervalue = parser.get('config', 'quarter_value')
+    quartervalue = quartervalue.replace(' ', '')
+    quartervalueList = quartervalue.split(',')
+    for value in quartervalueList:
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        login_myportal(driver)
+        # Wait for the 'list-group-item' can be found and clicked
+        web_driver_counter = 400
+        while web_driver_counter:
+            try:
+                list_group_item = driver.find_element_by_class_name("list-group-item")
+            except:
+                pass
+            web_driver_counter -= 1
+        if not list_group_item:
+            logger.error("Could not find list-group item!")
+            raise NoSuchElementException("Could not find list-group item!")
         try:
-            list_group_item = driver.find_element_by_class_name("list-group-item")
-        except:
-            pass
-        web_driver_counter -= 1
-    if not list_group_item:
-        logger.error("Could not find list-group item!")
-        raise NoSuchElementException("Could not find list-group item!")
-
-    try:
-        # Course search page from homepage after login
-        openSearchPage(driver)
-        selectelement = driver.find_element_by_tag_name("select")
-        # Select specified course
-        quarter_downlist = Select(selectelement)
-        value = parser.get('config', 'quarter_value')
-        quarter_downlist.select_by_value(value)
-        # click 'Submit' button
-        locateButton(driver, "submit")
-        # click 'Advance Search' button
-        locateButton(driver, "advance")
-        # Wait while the page is loading
-        waitUtilPageLoaded(driver, 30)
-        # Go to the advanced options page and start filling in various search terms
-        fillAdvanceSearch(driver)
-        # Save searched courses
-        html = saveResult(driver)
-        # get quarter and filename based on quarter_value in crawler.config
-        quarter, filename = generateQuarterAndFilename(value)
-
-        DataProcess().data_process(html, filename, quarter)
-        logging.info("Download Finished!")
-    except Exception as e:
-        logger.error(repr(e))
-        sys.exit(-1)
-
+            # Course search page from homepage after login
+            openSearchPage(driver)
+            selectelement = driver.find_element_by_tag_name("select")
+            # Select specified course
+            quarter_downlist = Select(selectelement)
+            quarter_downlist.select_by_value(value)
+            # click 'Submit' button
+            locateButton(driver, "submit")
+            # click 'Advance Search' button
+            locateButton(driver, "advance")
+            # Wait while the page is loading
+            waitUtilPageLoaded(driver, 30)
+            # Go to the advanced options page and start filling in various search terms
+            fillAdvanceSearch(driver)
+            # Save searched courses
+            html = saveResult(driver)
+            # get quarter and filename based on quarter_value in crawler.config
+            quarter, filename = generateQuarterAndFilename(value)
+            DataProcess().data_process(html, filename, quarter)
+            logging.info("Download Finished!")
+        except Exception as e:
+            logger.error(repr(e))
+            sys.exit(-1)
 
 if __name__ == "__main__":
     main()
